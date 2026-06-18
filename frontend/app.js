@@ -615,6 +615,16 @@ window.onload = () => {
             renderChordSheet();
         });
     }
+
+    const colorPicker = document.getElementById('color-picker');
+    const colorIcon = document.getElementById('svg-color-icon');
+    
+    if (colorPicker && colorIcon) {
+        colorPicker.addEventListener('input', (e) => {
+            // Ändert die CSS-Füllfarbe des SVGs in Echtzeit beim Schieben im Farbrad
+            colorIcon.style.fill = e.target.value;
+        });
+    }
 };
 
 // Reagiert sofort, wenn man den Schieberegler bewegt
