@@ -12,6 +12,10 @@ let startDistance = 0; // Speichert den Anfangsabstand der zwei Finger
 let currentScale = 1.0; // Aktuelle Zoom-Stufe
 let startScale = 1.0;
 
+let autoscrollFrameId = null;
+let lastScrollTime = 0;
+let scrollAccumulator = 0;
+
 // Canvas State
 const canvas = document.getElementById('annotation-canvas');
 const ctx = canvas.getContext('2d');
@@ -182,24 +186,62 @@ function toggleAutoscroll() {
 
 function startAutoscroll() {
     if (!currentSongId) return;
+    
+    // ABSICHERUNG GEGEN NOCK-ON-EFFEKT: Falls bereits eine Schleife aktiv ist, 
+    // brechen wir sie starr ab, bevor wir eine neue starten. Das killt das Rasen!
+    if (autoscrollFrameId) {
+        cancelAnimationFrame(autoscrollFrameId);
+    }
+    
     isScrolling = true;
-    btnAutoscroll.textContent = "⏸ Pause";
-    btnAutoscroll.style.backgroundColor = "var(--accent)";
+    if (btnAutoscroll) {
+        btnAutoscroll.textContent = "⏸";
+        btnAutoscroll.classList.add('active');
+    }
 
-    // Scroll-Geschwindigkeit proportional zu den BPM berechnen
-    // Ein Pixel-Scroll alle X Millisekunden
-    const intervalMs = Math.max(10, 12000 / currentBpm); 
+    // Speicher zurücksetzen
+    scrollAccumulator = 0;
+    lastScrollTime = performance.now();
+    const viewportHeight = scrollContainer.clientHeight;
 
-    autoscrollInterval = setInterval(() => {
-        scrollContainer.scrollBy(0, 1);
-    }, intervalMs);
+    function scrollFrame(currentTime) {
+        if (!isScrolling) return;
+
+        const deltaTime = currentTime - lastScrollTime;
+        lastScrollTime = currentTime;
+
+        // Basis-Geschwindigkeit berechnen (BPM-basiert)
+        const dynamicStep = viewportHeight * currentBpm * 0.0000001;
+        const fractionalStep = dynamicStep * deltaTime;
+
+        // Wir addieren den Bruchteil auf unseren Speicher auf
+        scrollAccumulator += fractionalStep;
+
+        // BEHOBEN: Sobald sich 1 oder mehr ganze Pixel angesammelt haben,
+        // scrollen wir um exakt diese Zahl. Dadurch stoppt das Scrollen bei 40 nie wieder!
+        if (scrollAccumulator >= 1) {
+            const pixelsToScroll = Math.floor(scrollAccumulator);
+            scrollContainer.scrollBy(0, pixelsToScroll);
+            scrollAccumulator -= pixelsToScroll; // Rest im Speicher belassen
+        }
+
+        autoscrollFrameId = requestAnimationFrame(scrollFrame);
+    }
+
+    autoscrollFrameId = requestAnimationFrame(scrollFrame);
 }
 
 function stopAutoscroll() {
     isScrolling = false;
-    btnAutoscroll.textContent = "▶ Play";
-    btnAutoscroll.style.backgroundColor = "";
-    clearInterval(autoscrollInterval);
+    if (btnAutoscroll) {
+        btnAutoscroll.textContent = "▶";
+        btnAutoscroll.classList.remove('active');
+    }
+    // Schleife sauber aus dem Speicher werfen
+    if (autoscrollFrameId) {
+        cancelAnimationFrame(autoscrollFrameId);
+        autoscrollFrameId = null;
+    }
 }
 
 btnAutoscroll.addEventListener('click', toggleAutoscroll);

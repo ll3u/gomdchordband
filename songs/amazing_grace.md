@@ -6,7 +6,7 @@
 
 ---
 
-## Verse 1
+[Verse 1]
 
 G        C        G
 Amazing grace, how sweet the sound

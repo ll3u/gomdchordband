@@ -6,7 +6,7 @@
 
 ---
 
-## Intro
+[## Intro]
 
 D          C          G
 Big wheels keep on turning
