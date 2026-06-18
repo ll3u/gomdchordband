@@ -211,7 +211,7 @@ function startAutoscroll() {
         lastScrollTime = currentTime;
 
         // Basis-Geschwindigkeit berechnen (BPM-basiert)
-        const dynamicStep = viewportHeight * currentBpm * 0.0000001;
+        const dynamicStep = viewportHeight * currentBpm * 0.00000025;
         const fractionalStep = dynamicStep * deltaTime;
 
         // Wir addieren den Bruchteil auf unseren Speicher auf
