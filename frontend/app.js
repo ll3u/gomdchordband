@@ -3,6 +3,7 @@ let currentSongId = null;
 let currentBpm = 90;
 let autoscrollInterval = null;
 let isScrolling = false;
+let currentRawContent = "";
 
 let isTwoFingerScrolling = false;
 let touchStartScrollY = 0;
@@ -80,27 +81,38 @@ async function selectSong(id) {
     currentSongId = id;
     stopAutoscroll();
     
-    // UI Aktivitäts-Klasse wechseln
     document.querySelectorAll('#song-list li').forEach(li => li.classList.remove('active'));
     
     const res = await fetch(`/api/songs/${encodeURIComponent(id)}`);
     const song = await res.json();
     
+    // Originalen Inhalt sichern
+    currentRawContent = song.content;
+    
     // Suchen und ersetzen in der Funktion selectSong(id):
     const bpmMatch = song.content.match(/\*\*Tempo:\*\*\s*(\d+)/i) || song.content.match(/Tempo:\s*(\d+)/i);
-
+    
     // Ersten Treffer (die reine Zahlengruppe) isolieren, ansonsten Standard auf 90 setzen
     currentBpm = (bpmMatch && bpmMatch[1]) ? parseInt(bpmMatch[1], 10) : 90;
-
+    
     // Werte an die neuen Slider-Elemente übergeben
     bpmSlider.value = currentBpm;
     bpmValDisplay.textContent = currentBpm;
 
+    // RENDERING MIT CHORDSHEETJS (Ersetzt die alte md.render Zeile)
+    try {
+        const parser = new ChordSheetJS.UltimateGuitarParser();
+        const parsedSong = parser.parse(currentRawContent);
+        const formatter = new ChordSheetJS.HtmlDivFormatter();
+        
+        document.getElementById('song-render').innerHTML = formatter.format(parsedSong);
+    } catch (e) {
+        console.error("ChordSheetJS fehlgeschlagen, verwende originalen Markdown Fallback", e);
+        // Falls kein Song-Tab vorliegt, greift dein originaler Markdown-Parser
+        document.getElementById('song-render').innerHTML = md.render(currentRawContent);
+    }
 
-        // Markdown rendern
-    document.getElementById('song-render').innerHTML = md.render(song.content);
-    
-    // ÄNDERUNG HIER: Dem Browser 50ms Zeit geben, das Layout aufzubauen,
+    // Dem Browser 50ms Zeit geben, das Layout aufzubauen,
     // damit wrapper.clientHeight die echte Gesamthöhe des Songs liefert.
     setTimeout(() => {
         resizeCanvas();

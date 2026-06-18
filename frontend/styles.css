@@ -336,3 +336,39 @@ button:hover { background: #3f4a5e; }
 .btn-tool-action:hover {
     background: #6b7280;
 }
+
+
+/* ========================================================
+   ERWEITERUNG: AKKORD-LAYOUT FÜR CHORDSHEETJS (SCHRITT 1.1)
+   ======================================================== */
+/* Sorgt dafür, dass die Textblöcke sauber als Zeilen laufen */
+.paragraph {
+    margin-bottom: 24px;
+    white-space: pre;
+}
+
+.row {
+    display: block;
+}
+
+/* WICHTIG: Bindet Akkord und Wort als kompakte, 
+   nebeneinanderstehende Spalte zusammen */
+.column {
+    display: inline-block;
+    vertical-align: bottom;
+}
+
+/* Macht die Akkorde fett und hebt sie farblich hervor */
+.chord {
+    font-weight: bold;
+    color: var(--primary); /* Nutzt dein originales Rot (#ff4757) aus Zeile 7 */
+    display: block;
+    height: 1.3em;
+    margin-bottom: -2px;
+}
+
+/* Sorgt dafür, dass der Text direkt unter dem Akkord steht */
+.lyrics {
+    display: block;
+    color: var(--text-dark); /* Nutzt dein originales Dunkelgrau (#2f3542) aus Zeile 6 */
+}
