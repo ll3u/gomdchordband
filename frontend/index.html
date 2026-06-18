@@ -57,10 +57,16 @@
             <div class="toolbar-group">
                 <button id="btn-autoscroll" class="btn-action play-btn">▶ Play</button>
                 <div class="bpm-slider-container">
-                    <input type="range" id="bpm-slider" min="50" max="300" value="100" step="5">
-                    <span id="bpm-val-display">1.0</span><span class="bpm-label">x Speed</span>
+                    <input type="range" id="bpm-slider" min="40" max="240" value="90">
+                    <span id="bpm-val-display">90</span> <span class="bpm-label">x Speed</span>
                 </div>
-
+                
+                <!-- NEU: Transponier-Buttons inklusive Anzeige der aktuellen Tonart-Verschiebung -->
+                <div class="transpose-container" style="display: inline-flex; align-items: center; gap: 8px; margin-left: 10px;">
+                    <button id="btn-transpose-down" class="btn-tool-action" style="padding: 6px 12px;">♭ -1</button>
+                    <span id="transpose-val-display" style="font-weight: bold; min-width: 30px; text-align: center; font-family: monospace;">0</span>
+                    <button id="btn-transpose-up" class="btn-tool-action" style="padding: 6px 12px;">♯ +1</button>
+                </div>
             </div>
             <div class="toolbar-divider"></div>
             <div class="toolbar-group">

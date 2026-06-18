@@ -16,6 +16,8 @@ let autoscrollFrameId = null;
 let lastScrollTime = 0;
 let scrollAccumulator = 0;
 
+let currentTransposeOffset = 0;
+
 // Canvas State
 const canvas = document.getElementById('annotation-canvas');
 const ctx = canvas.getContext('2d');
@@ -112,7 +114,7 @@ async function selectSong(id) {
 
     currentRawContent = song.content;
 
-    // BEHOBEN: Greift absolut stabil und fehlerfrei auf dein originales bpmMatch[1] zu!
+    // BPM Laden
     const savedBpm = localStorage.getItem(`bpm_${id}`);
     if (savedBpm) {
         currentBpm = parseInt(savedBpm, 10);
@@ -124,7 +126,21 @@ async function selectSong(id) {
     if (bpmSlider) bpmSlider.value = currentBpm;
     if (bpmValDisplay) bpmValDisplay.textContent = currentBpm;
 
-    // RENDERING: Präziser Header-Parser mit Leerzeilen-Kompression (Deine stabile Basis)
+    // Transpose-Wert für dieses spezifische Lied aus dem Speicher holen
+    const savedTranspose = localStorage.getItem(`transpose_${id}`);
+    currentTransposeOffset = savedTranspose ? parseInt(savedTranspose, 10) : 0;
+    
+    const transDisplay = document.getElementById('transpose-val-display');
+    if (transDisplay) {
+        transDisplay.textContent = (currentTransposeOffset >= 0 ? "+" : "") + currentTransposeOffset;
+    }
+
+    // Das Zeichnen des Akkordblatts anwerfen
+    renderChordSheet();
+}
+
+function renderChordSheet() {
+    if (!currentRawContent) return;
     try {
         const lines = currentRawContent.split('\n');
         let headerHtml = "";
@@ -161,20 +177,82 @@ async function selectSong(id) {
 
         const songBodyText = songBodyLines.join('\n');
 
+        // 1. Wir nutzen wieder den stabilen UltimateGuitarParser für das perfekte Layout
         const parser = new ChordSheetJS.UltimateGuitarParser();
-        const parsedSong = parser.parse(songBodyText);
+        const song = parser.parse(songBodyText);
         const formatter = new ChordSheetJS.HtmlDivFormatter();
-        const mainBodyHtml = formatter.format(parsedSong);
+        const mainBodyHtml = formatter.format(song);
 
+        // HTML in das Dokument schreiben
         document.getElementById('song-render').innerHTML = '<div class="ug-header-block">' + headerHtml + '</div><div class="ug-song-body">' + mainBodyHtml + '</div>';
+
+        // ========================================================
+        // LIVE-HTML-TRANSPONIERUNG ÜBER DIE NATIVEN CHORDSHEETJS-KLASSEN
+        // ========================================================
+        // Wenn ein Versatz eingestellt ist, suchen wir alle erzeugten Akkord-Elemente direkt im HTML!
+        if (currentTransposeOffset !== 0 && typeof ChordSheetJS.Chord !== 'undefined') {
+            const chordElements = document.querySelectorAll('#song-render .chord');
+            
+            // Tabelle für die Umwandlung von unleserlichen Flats in griffige Kreuze
+            const flatToSharpMap = {
+                "Db": "C#", "Eb": "D#", "Gb": "F#", "Ab": "G#"
+            };
+            
+            chordElements.forEach(el => {
+                const rawChordText = el.textContent.trim();
+                if (!rawChordText) return;
+                
+                try {
+                    const chordObj = ChordSheetJS.Chord.parse(rawChordText);
+                    const transposedChord = chordObj.transpose(currentTransposeOffset);
+                    
+                    // 1. Zuerst normalisieren: Macht aus B# ein C und aus E# ein F!
+                    const normalized = transposedChord.normalize();
+                    let chordString = normalized.toString();
+                    
+                    // 2. Unnatürliche Noten direkt abfangen
+                    if (chordString.startsWith("B#")) {
+                        chordString = "C" + chordString.substring(2);
+                    } else if (chordString.startsWith("E#")) {
+                        chordString = "F" + chordString.substring(2);
+                    }
+                    
+                    // 3. Flats in Kreuze umwandeln (außer Bb, das wird deutsches B)
+                    const rootTwo = chordString.substring(0, 2);
+                    if (flatToSharpMap[rootTwo]) {
+                        chordString = flatToSharpMap[rootTwo] + chordString.substring(2);
+                    }
+                    
+                    // 4. DEUTSCHE ANNOTATION (H statt B / B statt Bb)
+                    // Wenn der Akkord mit "Bb" beginnt (englisches B), wird es zum deutschen "B"
+                    if (chordString.startsWith("Bb")) {
+                        chordString = "B" + chordString.substring(2);
+                    }
+                    // Wenn der Akkord mit einem reinen "B" beginnt (englisches H), 
+                    // machen wir ein deutsches "H" daraus.
+                    else if (chordString.startsWith("B") && chordString.charAt(1) !== 'b' && chordString.charAt(1) !== '#') {
+                        chordString = "H" + chordString.substring(1);
+                    }
+                    
+                    el.textContent = chordString;
+                } catch (chordError) {
+                    //console.log("Überspringe ungültiges Akkord-Symbol:", rawChordText);
+                }
+            });
+        }
+        // ========================================================
+
     } catch (e) {
         console.error("Rendering fehlgeschlagen, nutze Fallback:", e);
-        document.getElementById('song-render').innerHTML = md.render(currentRawContent);
+        if (window.markdownit) {
+            const md = window.markdownit({ html: true });
+            document.getElementById('song-render').innerHTML = md.render(currentRawContent);
+        }
     }
 
     setTimeout(() => {
-        resizeCanvas();
-        loadCanvasData();
+        if (typeof resizeCanvas === "function") resizeCanvas();
+        if (typeof loadCanvasData === "function") loadCanvasData();
     }, 50);
 }
 
@@ -507,6 +585,26 @@ document.getElementById('import-file').addEventListener('change', (e) => {
 window.onload = () => {
     loadSongs();
     document.getElementById('btn-refresh').addEventListener('click', loadSongs);
+
+    const btnTransUp = document.getElementById('btn-transpose-up');
+    const btnTransDown = document.getElementById('btn-transpose-down');
+    const transDisplay = document.getElementById('transpose-val-display');
+
+    if (btnTransUp && btnTransDown) {
+        btnTransUp.addEventListener('click', () => {
+            currentTransposeOffset++;
+            if (transDisplay) transDisplay.textContent = (currentTransposeOffset >= 0 ? "+" : "") + currentTransposeOffset;
+            if (currentSongId) localStorage.setItem(`transpose_${currentSongId}`, currentTransposeOffset);
+            renderChordSheet(); // Erzwingt das sofortige Neuzeichnen mit den neuen Akkorden
+        });
+
+        btnTransDown.addEventListener('click', () => {
+            currentTransposeOffset--;
+            if (transDisplay) transDisplay.textContent = (currentTransposeOffset >= 0 ? "+" : "") + currentTransposeOffset;
+            if (currentSongId) localStorage.setItem(`transpose_${currentSongId}`, currentTransposeOffset);
+            renderChordSheet();
+        });
+    }
 };
 
 // Reagiert sofort, wenn man den Schieberegler bewegt
