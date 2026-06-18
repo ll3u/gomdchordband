@@ -1,7 +1,7 @@
 // Service Worker for Band Chords PWA
-const CACHE_NAME = 'band-chords-v1.7';
-const ASSETS_CACHE = 'band-chords-assets-v1.7';
-const DATA_CACHE = 'band-chords-data-v1.7';
+const CACHE_NAME = 'band-chords-v2.0.2';
+const ASSETS_CACHE = 'band-chords-assets-v2.0.2';
+const DATA_CACHE = 'band-chords-data-v2.0.2';
 
 // Assets to cache (critical for offline functionality)
 const ASSETS_TO_CACHE = [
@@ -11,7 +11,8 @@ const ASSETS_TO_CACHE = [
     '/app.js',
     '/sw-register.js',
     '/manifest.json',
-    'https://cdn.jsdelivr.net/npm/markdown-it@14.0.0/dist/markdown-it.min.js'
+    'https://cdn.jsdelivr.net/npm/markdown-it@14.0.0/dist/markdown-it.min.js',
+    '/ChordSheetJS.bundle.min.js'
 ];
 
 // Install: Cache all static assets
@@ -76,9 +77,18 @@ async function handleApiRequest(event) {
   const cache = await caches.open(DATA_CACHE);
   const url = new URL(event.request.url); // 1. NEU: Die URL parsen, um an den sauberen Pfad zu kommen
 
+  // NEU: Definiert eine absolute Obergrenze von 1.5 Sekunden für das Netzwerk
+  const timeoutPromise = new Promise((_, reject) => 
+    setTimeout(() => reject(new Error('Network Timeout')), 1500)
+  );
+
   try {
-    // 1. Versuche das Netzwerk (Go-Backend)
-    const networkResponse = await fetch(event.request);
+    // KORRIGIERT: Rennen zwischen dem echten Go-Backend und dem 1.5s Timeout.
+    // Wenn der Server aus ist, bricht das Rennen nach spätestens 1.5s ab und springt in den catch-Block!
+    const networkResponse = await Promise.race([
+      fetch(event.request),
+      timeoutPromise
+    ]);
 
     if (networkResponse.ok) {
       // 2. GEÄNDERT: Wir nutzen url.pathname statt event.request.url als Schlüssel
@@ -108,7 +118,6 @@ async function handleApiRequest(event) {
     return new Response('[]', { headers: { 'Content-Type': 'application/json' } });
   }
 }
-
 
 // Activate: Clean up old caches
 self.addEventListener('activate', (event) => {
