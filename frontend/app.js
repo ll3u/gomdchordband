@@ -94,32 +94,37 @@ async function selectSong(id) {
         const res = await fetch(songUrl);
         song = await res.json();
     } catch (fetchErr) {
-        console.log("📡 Server offline. Versuche lokalen Cache über Service Worker...", fetchErr);
+        console.log(" Server offline. Versuche lokalen Cache über Service Worker...", fetchErr);
         try {
             const cachedResponse = await caches.match(songUrl);
             if (cachedResponse) {
                 song = await cachedResponse.json();
             }
         } catch (cacheErr) {
-            console.error("❌ Kritischer Fehler beim Auslesen des Caches:", cacheErr);
+            console.error(" Kritischer Fehler beim Auslesen des Caches:", cacheErr);
         }
     }
 
     if (!song || !song.content) {
-        document.getElementById('song-render').innerHTML = "<h1>⚠️ Lied offline nicht verfügbar</h1><p>Bitte dieses Lied einmalig im Online-Zustand laden.</p>";
+        document.getElementById('song-render').innerHTML = "<h1> Lied offline nicht verfügbar</h1><p>Bitte dieses Lied einmalig im Online-Zustand laden.</p>";
         return;
     }
 
     currentRawContent = song.content;
 
-    // BPM auslesen (Deine originale Logik)
-    const bpmMatch = song.content.match(/\*\*Tempo:\*\*\s*(\d+)/i) || song.content.match(/Tempo:\s*(\d+)/i);
-    currentBpm = (bpmMatch && bpmMatch[1]) ? parseInt(bpmMatch[1], 10) : 90;
+    // BEHOBEN: Greift absolut stabil und fehlerfrei auf dein originales bpmMatch[1] zu!
+    const savedBpm = localStorage.getItem(`bpm_${id}`);
+    if (savedBpm) {
+        currentBpm = parseInt(savedBpm, 10);
+    } else {
+        const bpmMatch = song.content.match(/\*\*Tempo:\*\*\s*(\d+)/i) || song.content.match(/Tempo:\s*(\d+)/i);
+        currentBpm = (bpmMatch && bpmMatch[1]) ? parseInt(bpmMatch[1], 10) : 90;
+    }
 
-    bpmSlider.value = currentBpm;
-    bpmValDisplay.textContent = currentBpm;
+    if (bpmSlider) bpmSlider.value = currentBpm;
+    if (bpmValDisplay) bpmValDisplay.textContent = currentBpm;
 
-    // RENDERING: Präziser Header-Parser mit Leerzeilen-Kompression (Schritt 3.7)
+    // RENDERING: Präziser Header-Parser mit Leerzeilen-Kompression (Deine stabile Basis)
     try {
         const lines = currentRawContent.split('\n');
         let headerHtml = "";
@@ -150,8 +155,6 @@ async function selectSong(id) {
             }
         });
 
-        // UNFEHLBARER FIX: Wir gehen das Array von vorne durch und löschen ALLE 
-        // leeren Zeilen heraus, bis wir auf echten Text treffen (z.B. "[Intro]")
         while (songBodyLines.length > 0 && songBodyLines[0].trim() === "") {
             songBodyLines.shift();
         }
@@ -163,7 +166,7 @@ async function selectSong(id) {
         const formatter = new ChordSheetJS.HtmlDivFormatter();
         const mainBodyHtml = formatter.format(parsedSong);
 
-         document.getElementById('song-render').innerHTML = '<div class="ug-header-block">' + headerHtml + '</div><div class="ug-song-body">' + mainBodyHtml + '</div>';
+        document.getElementById('song-render').innerHTML = '<div class="ug-header-block">' + headerHtml + '</div><div class="ug-song-body">' + mainBodyHtml + '</div>';
     } catch (e) {
         console.error("Rendering fehlgeschlagen, nutze Fallback:", e);
         document.getElementById('song-render').innerHTML = md.render(currentRawContent);
@@ -464,14 +467,15 @@ document.getElementById('btn-export').addEventListener('click', () => {
     const backup = {};
     for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
-        if (key.startsWith('canvas_')) {
+        // Sichert sowohl die Canvas-Zeichnungen als auch die Song-Geschwindigkeiten
+        if (key.startsWith('canvas_') || key.startsWith('bpm_')) {
             backup[key] = localStorage.getItem(key);
         }
     }
     const blob = new Blob([JSON.stringify(backup)], {type: 'application/json'});
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = `band-chords-annotations-${new Date().toISOString().slice(0,10)}.json`;
+    a.download = `band-chords-backup-${new Date().toISOString().slice(0,10)}.json`;
     a.click();
 });
 
@@ -483,8 +487,18 @@ document.getElementById('import-file').addEventListener('change', (e) => {
     reader.onload = (evt) => {
         const backup = JSON.parse(evt.target.result);
         Object.keys(backup).forEach(key => localStorage.setItem(key, backup[key]));
-        if (currentSongId) loadCanvasData();
-        alert("Notizen erfolgreich importiert!");
+        
+        // Aktualisiert nach dem Import sowohl das Canvas als auch den Tempo-Regler live
+        if (currentSongId) {
+            loadCanvasData();
+            const savedBpm = localStorage.getItem(`bpm_${currentSongId}`);
+            if (savedBpm) {
+                currentBpm = parseInt(savedBpm, 10);
+                if (bpmSlider) bpmSlider.value = currentBpm;
+                if (bpmValDisplay) bpmValDisplay.textContent = currentBpm;
+            }
+        }
+        alert("Notizen und Song-Geschwindigkeiten erfolgreich importiert!");
     };
     reader.readAsText(file);
 });
@@ -499,7 +513,14 @@ window.onload = () => {
 bpmSlider.addEventListener('input', (e) => {
     let val = parseInt(e.target.value, 10);
     currentBpm = val;
-    bpmValDisplay.textContent = val; // Zahl live aktualisieren
+   if (bpmValDisplay) {
+        bpmValDisplay.textContent = val; // Zahl live aktualisieren
+    } 
+
+    // NEU: Speichert den BPM-Wert sofort für diesen Song lokal ab
+    if (currentSongId) {
+        localStorage.setItem(`bpm_${currentSongId}`, val);
+    }
     
     // Falls das Autoscroll läuft, Tempo sofort ohne Pause anpassen
     if (isScrolling) {
