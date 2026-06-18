@@ -276,7 +276,12 @@ function startAutoscroll() {
     
     isScrolling = true;
     if (btnAutoscroll) {
-        btnAutoscroll.textContent = "⏸";
+        const playIcon = document.getElementById('svg-play-icon');
+        const pauseIcon = document.getElementById('svg-pause-icon');
+        
+        if (playIcon) playIcon.style.display = 'none';
+        if (pauseIcon) pauseIcon.style.display = 'inline-block';
+
         btnAutoscroll.classList.add('active');
     }
 
@@ -315,7 +320,12 @@ function startAutoscroll() {
 function stopAutoscroll() {
     isScrolling = false;
     if (btnAutoscroll) {
-        btnAutoscroll.textContent = "▶";
+        const playIcon = document.getElementById('svg-play-icon');
+        const pauseIcon = document.getElementById('svg-pause-icon');
+        
+        if (playIcon) playIcon.style.display = 'inline-block';
+        if (pauseIcon) pauseIcon.style.display = 'none';
+
         btnAutoscroll.classList.remove('active');
     }
     // Schleife sauber aus dem Speicher werfen
