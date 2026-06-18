@@ -80,40 +80,88 @@ async function loadSongs() {
 async function selectSong(id) {
     currentSongId = id;
     stopAutoscroll();
-    
+
     document.querySelectorAll('#song-list li').forEach(li => li.classList.remove('active'));
-    
-    const res = await fetch(`/api/songs/${encodeURIComponent(id)}`);
-    const song = await res.json();
-    
-    // Originalen Inhalt sichern
+
+    let song;
+    const songUrl = `/api/songs/${encodeURIComponent(id)}`;
+
+    try {
+        const res = await fetch(songUrl);
+        song = await res.json();
+    } catch (fetchErr) {
+        console.log("📡 Server offline. Versuche lokalen Cache über Service Worker...", fetchErr);
+        try {
+            const cachedResponse = await caches.match(songUrl);
+            if (cachedResponse) {
+                song = await cachedResponse.json();
+            }
+        } catch (cacheErr) {
+            console.error("❌ Kritischer Fehler beim Auslesen des Caches:", cacheErr);
+        }
+    }
+
+    if (!song || !song.content) {
+        document.getElementById('song-render').innerHTML = "<h1>⚠️ Lied offline nicht verfügbar</h1><p>Bitte dieses Lied einmalig im Online-Zustand laden.</p>";
+        return;
+    }
+
     currentRawContent = song.content;
-    
-    // Suchen und ersetzen in der Funktion selectSong(id):
+
+    // BPM auslesen (Deine originale Logik)
     const bpmMatch = song.content.match(/\*\*Tempo:\*\*\s*(\d+)/i) || song.content.match(/Tempo:\s*(\d+)/i);
-    
-    // Ersten Treffer (die reine Zahlengruppe) isolieren, ansonsten Standard auf 90 setzen
     currentBpm = (bpmMatch && bpmMatch[1]) ? parseInt(bpmMatch[1], 10) : 90;
-    
-    // Werte an die neuen Slider-Elemente übergeben
+
     bpmSlider.value = currentBpm;
     bpmValDisplay.textContent = currentBpm;
 
-    // RENDERING MIT CHORDSHEETJS (Ersetzt die alte md.render Zeile)
+     // RENDERING: Ultimate-Guitar-Header-Parser + ChordSheetJS (Schritt 1.6)
     try {
+        const lines = currentRawContent.split('\n');
+        let headerHtml = "";
+        let songBodyLines = [];
+
+        lines.forEach(line => {
+            const trimmed = line.trim();
+            
+            if (trimmed.startsWith('# ')) {
+                headerHtml += `<h1 class="ug-header-title">${trimmed.replace('# ', '')}</h1>`;
+            } 
+            else if (trimmed.toLowerCase().includes('tempo:')) {
+                const cleanBpm = trimmed.replace(/\*/g, '');
+                headerHtml += `<div class="ug-header-meta"><strong>${cleanBpm}</strong></div>`;
+            } 
+            // KORRIGIERT: Jede dieser Metadaten bekommt nun ein EIGENES <div> für einen harten Zeilenumbruch!
+            else if (trimmed.toLowerCase().includes('tuning:')) {
+                headerHtml += `<div class="ug-header-meta">${trimmed.replace(/\*/g, '')}</div>`;
+            }
+            else if (trimmed.toLowerCase().includes('key:')) {
+                headerHtml += `<div class="ug-header-meta">${trimmed.replace(/\*/g, '')}</div>`;
+            }
+            else if (trimmed.toLowerCase().includes('capo:')) {
+                headerHtml += `<div class="ug-header-meta">${trimmed.replace(/\*/g, '')}</div>`;
+            }
+            else {
+                songBodyLines.push(line);
+            }
+        });
+
+        const songBodyText = songBodyLines.join('\n');
+
         const parser = new ChordSheetJS.UltimateGuitarParser();
-        const parsedSong = parser.parse(currentRawContent);
+        const parsedSong = parser.parse(songBodyText);
         const formatter = new ChordSheetJS.HtmlDivFormatter();
-        
-        document.getElementById('song-render').innerHTML = formatter.format(parsedSong);
+        const mainBodyHtml = formatter.format(parsedSong);
+
+        document.getElementById('song-render').innerHTML = `
+            <div class="ug-header-block">${headerHtml}</div>
+            <div class="ug-song-body">${mainBodyHtml}</div>
+        `;
     } catch (e) {
-        console.error("ChordSheetJS fehlgeschlagen, verwende originalen Markdown Fallback", e);
-        // Falls kein Song-Tab vorliegt, greift dein originaler Markdown-Parser
+        console.error("Rendering fehlgeschlagen, nutze Fallback:", e);
         document.getElementById('song-render').innerHTML = md.render(currentRawContent);
     }
 
-    // Dem Browser 50ms Zeit geben, das Layout aufzubauen,
-    // damit wrapper.clientHeight die echte Gesamthöhe des Songs liefert.
     setTimeout(() => {
         resizeCanvas();
         loadCanvasData();

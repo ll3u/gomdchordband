@@ -349,26 +349,95 @@ button:hover { background: #3f4a5e; }
 
 .row {
     display: block;
+    clear: both;
 }
 
-/* WICHTIG: Bindet Akkord und Wort als kompakte, 
-   nebeneinanderstehende Spalte zusammen */
 .column {
     display: inline-block;
     vertical-align: bottom;
+    padding-right: 6px; /* Garantiert echten horizontalen Abstand zwischen den Akkorden */
 }
 
-/* Macht die Akkorde fett und hebt sie farblich hervor */
 .chord {
     font-weight: bold;
-    color: var(--primary); /* Nutzt dein originales Rot (#ff4757) aus Zeile 7 */
+    color: var(--primary);
     display: block;
     height: 1.3em;
-    margin-bottom: -2px;
+    margin-bottom: -1px;
 }
 
-/* Sorgt dafür, dass der Text direkt unter dem Akkord steht */
+/* KORRIGIERT: Verhindert, dass Spalten ohne Text (wie im Intro) 
+   horizontal ineinander geschoben werden */
 .lyrics {
     display: block;
-    color: var(--text-dark); /* Nutzt dein originales Dunkelgrau (#2f3542) aus Zeile 6 */
+    min-height: 1em; /* Erzwingt Platzhalter-Höhe, falls kein Text da ist */
+    color: var(--text-dark);
+}
+
+/* ========================================================
+   ERWEITERUNG: ULTIMATE GUITAR HEADER STYLING (SCHRITT 1.5)
+   ======================================================== */
+.ug-header-block {
+    margin-bottom: 25px;
+    border-bottom: 2px solid #2f3542;
+    padding-bottom: 15px;
+}
+
+.ug-header-title {
+    font-size: 2rem;
+    font-weight: bold;
+    text-transform: capitalize;
+    color: var(--text-dark);
+    margin-bottom: 10px;
+}
+
+.ug-header-meta {
+    font-family: monospace;
+    font-size: 14px;
+    color: #57606f;
+    margin-bottom: 6px;
+}
+
+.ug-song-body {
+    margin-top: 15px;
+}
+
+
+/* ========================================================
+   GEPRÜFT & FIXIERT: AKKORD-LAYOUT FÜR DIV-STRUKTUREN
+   ======================================================== */
+
+/* Zwingt die gesamte Songzeile, sich als einheitlicher Block zu verhalten */
+.song-content .row {
+    display: block !important;
+    clear: both !important;
+    margin-bottom: 4px !important;
+}
+
+/* Zwingt das Akkord-Div und das Text-Div, als vertikale Säule 
+   zusammenzubleiben und sich horizontal aneinanderzureihen */
+.song-content .column {
+    display: inline-flex !important;
+    flex-direction: column !important;
+    vertical-align: bottom !important;
+    padding-right: 8px !important; /* Garantiert den horizontalen Abstand zwischen Akkorden */
+    margin: 0 !important;
+}
+
+/* Formatiert die Akkorde fett und rot */
+.song-content .chord {
+    font-weight: bold !important;
+    color: var(--primary) !important; /* Nutzt dein originales Rot (#ff4757) */
+    display: block !important;
+    height: 1.3em !important;
+    white-space: nowrap !important;
+}
+
+/* Sorgt dafür, dass leere Textstellen (wie im Intro) nicht horizontal 
+   zusammenbrechen, sondern die volle Breite des Akkords einnehmen */
+.song-content .lyrics {
+    display: block !important;
+    min-height: 1.2em !important; /* Gibt leeren Zeilen eine feste Höhe */
+    color: var(--text-dark) !important;
+    white-space: pre !important;
 }

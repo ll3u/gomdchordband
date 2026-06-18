@@ -2,7 +2,9 @@
 
 **Tempo:** 90 BPM
 
-Tuning: E A D G B EKey: F#mCapo: No capo
+Tuning: E A D G B E
+Key: F#m
+Capo: No capo
 
 [Intro]
 Gm7 A#  Fsus4  C7sus4
