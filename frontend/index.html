@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Band Chords PWA</title>
+    <meta name="theme-color" content="#2c3e50">
+    <meta name="description" content="Offline chord sheets for band rehearsals">
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json">
+
+    <!-- Markdown rendering library -->
+    <script src="https://cdn.jsdelivr.net/npm/markdown-it@14.0.0/dist/markdown-it.min.js"></script>
+
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Top Navigation -->
+        <header class="top-bar">
+            <div class="left-controls">
+                <button id="sidebar-toggle" class="btn-icon">☰</button>
+                <h1>Band Chords</h1>
+            </div>
+            <div class="actions">
+                <button id="btn-refresh">🔄 Refresh</button>
+                <button id="btn-export">📤 Export</button>
+                <button id="btn-import">📥 Import</button>
+                <input type="file" id="import-file" style="display: none;" accept=".json">
+            </div>
+        </header>
+
+        <div class="main-layout">
+            <!-- Sidebar (einklappbar) -->
+            <aside class="sidebar" id="sidebar">
+                <h2>Songs</h2>
+                <ul id="song-list">
+                    <!-- Wird dynamisch befüllt -->
+                </ul>
+            </aside>
+
+            <!-- Scroll-Container für Text und Canvas -->
+            <main class="content-viewer" id="scroll-container">
+                <div class="canvas-text-wrapper" id="wrapper">
+                    <div id="song-render" class="song-content">
+                        <!-- Gerendertes Markdown landet hier -->
+                    </div>
+                    <canvas id="annotation-canvas"></canvas>
+                </div>
+            </main>
+        </div>
+
+        <!-- Untere Toolbar für Zeichnen & Autoscroll -->
+        <footer class="bottom-bar">
+            <div class="toolbar-group">
+                <button id="btn-autoscroll" class="btn-action play-btn">▶ Play</button>
+                <div class="bpm-slider-container">
+                    <input type="range" id="bpm-slider" min="40" max="240" value="90">
+                    <span id="bpm-val-display">90</span> <span class="bpm-label">BPM</span>
+                </div>
+
+            </div>
+            <div class="toolbar-divider"></div>
+            <div class="toolbar-group">
+                <button id="tool-draw" class="btn-tool active">✏️</button>
+                <button id="tool-erase" class="btn-tool">🧼</button>
+                <!-- NEU: Der Undo Button -->
+                <button id="btn-undo" class="btn-tool-action">↩️ Undo</button> 
+                
+                <input type="color" id="color-picker" value="#ff4757">
+                <input type="range" id="brush-size" min="2" max="15" value="5">
+                <button id="btn-clear-canvas" class="btn-danger">🗑️ Clear</button>
+            </div>
+        </footer>
+    </div>
+    <script src="/sw-register.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
