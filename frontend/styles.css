@@ -441,3 +441,53 @@ button:hover { background: #3f4a5e; }
     color: var(--text-dark) !important;
     white-space: pre !important;
 }
+
+
+/* ========================================================
+   GUI-FEINSCHLIFF: ABSOLUTER HEADER-PADDING-FIX (SCHRITT 3.3)
+   ======================================================== */
+
+/* Korrigiert den Scroll-Container: Wir nehmen die Höhenbegrenzung hier raus,
+   damit die Seite flüssig scrollt und nichts abgeschnitten wird */
+.content-viewer {
+    height: auto !important;
+    padding: 10px !important; /* Weniger Abstand zum Bildschirmrand */
+}
+
+/* Der entscheidende Fix: Wir reduzieren das obere Padding des weißen Blattes 
+   von 40px auf knappe 15px, um den Titel direkt an den oberen Rand zu setzen */
+.canvas-text-wrapper .song-content {
+    padding: 15px 40px 40px 40px !important; /* Oben 15px, Seiten/Unten 40px beibehalten */
+}
+
+/* Zieht den gesamten Metadaten-Block eng zusammen */
+.song-content .ug-header-block {
+    margin-top: 0 !important;
+    margin-bottom: 8px !important;
+    padding-bottom: 4px !important;
+    border-bottom: 2px solid #2f3542 !important;
+}
+
+/* Verkleinert den Songtitel und löscht alle künstlichen Abstände */
+.song-content .ug-header-title {
+    font-size: 1.8rem !important;
+    font-weight: bold !important;
+    margin-top: 0 !important;
+    margin-bottom: 4px !important;
+    color: var(--text-dark) !important;
+    line-height: 1.1 !important;
+}
+
+/* Zieht Tempo, Tuning, Key und Capo ohne Leerzeilen direkt untereinander */
+.song-content .ug-header-meta {
+    font-family: monospace !important;
+    font-size: 13px !important;
+    color: #57606f !important;
+    margin-bottom: 2px !important;
+    line-height: 1.1 !important;
+}
+
+/* Verringert den ungenutzten Abstand unter der horizontalen Trennlinie */
+.song-content .ug-song-body {
+    margin-top: 8px !important;
+}

@@ -115,36 +115,42 @@ async function selectSong(id) {
     bpmSlider.value = currentBpm;
     bpmValDisplay.textContent = currentBpm;
 
-     // RENDERING: Ultimate-Guitar-Header-Parser + ChordSheetJS (Schritt 1.6)
+    // RENDERING: Präziser Header-Parser mit Leerzeilen-Kompression (Schritt 3.7)
     try {
         const lines = currentRawContent.split('\n');
         let headerHtml = "";
         let songBodyLines = [];
+        let inHeader = true;
 
         lines.forEach(line => {
             const trimmed = line.trim();
-            
-            if (trimmed.startsWith('# ')) {
-                headerHtml += `<h1 class="ug-header-title">${trimmed.replace('# ', '')}</h1>`;
-            } 
-            else if (trimmed.toLowerCase().includes('tempo:')) {
-                const cleanBpm = trimmed.replace(/\*/g, '');
-                headerHtml += `<div class="ug-header-meta"><strong>${cleanBpm}</strong></div>`;
-            } 
-            // KORRIGIERT: Jede dieser Metadaten bekommt nun ein EIGENES <div> für einen harten Zeilenumbruch!
-            else if (trimmed.toLowerCase().includes('tuning:')) {
-                headerHtml += `<div class="ug-header-meta">${trimmed.replace(/\*/g, '')}</div>`;
+
+            if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+                inHeader = false;
             }
-            else if (trimmed.toLowerCase().includes('key:')) {
-                headerHtml += `<div class="ug-header-meta">${trimmed.replace(/\*/g, '')}</div>`;
-            }
-            else if (trimmed.toLowerCase().includes('capo:')) {
-                headerHtml += `<div class="ug-header-meta">${trimmed.replace(/\*/g, '')}</div>`;
-            }
-            else {
+
+            if (inHeader) {
+                if (trimmed.startsWith('# ')) {
+                    headerHtml += `<h1 class="ug-header-title">${trimmed.replace('# ', '')}</h1>`;
+                } 
+                else if (trimmed.toLowerCase().includes('tempo:')) {
+                    const cleanBpm = trimmed.replace(/\*/g, '');
+                    headerHtml += `<div class="ug-header-meta"><strong>${cleanBpm}</strong></div>`;
+                } 
+                else if (trimmed.toLowerCase().includes('tuning:') || trimmed.toLowerCase().includes('key:') || trimmed.toLowerCase().includes('capo:')) {
+                    const cleanMeta = trimmed.replace(/\*/g, '');
+                    headerHtml += `<div class="ug-header-meta">${cleanMeta}</div>`;
+                }
+            } else {
                 songBodyLines.push(line);
             }
         });
+
+        // UNFEHLBARER FIX: Wir gehen das Array von vorne durch und löschen ALLE 
+        // leeren Zeilen heraus, bis wir auf echten Text treffen (z.B. "[Intro]")
+        while (songBodyLines.length > 0 && songBodyLines[0].trim() === "") {
+            songBodyLines.shift();
+        }
 
         const songBodyText = songBodyLines.join('\n');
 
@@ -153,10 +159,7 @@ async function selectSong(id) {
         const formatter = new ChordSheetJS.HtmlDivFormatter();
         const mainBodyHtml = formatter.format(parsedSong);
 
-        document.getElementById('song-render').innerHTML = `
-            <div class="ug-header-block">${headerHtml}</div>
-            <div class="ug-song-body">${mainBodyHtml}</div>
-        `;
+         document.getElementById('song-render').innerHTML = '<div class="ug-header-block">' + headerHtml + '</div><div class="ug-song-body">' + mainBodyHtml + '</div>';
     } catch (e) {
         console.error("Rendering fehlgeschlagen, nutze Fallback:", e);
         document.getElementById('song-render').innerHTML = md.render(currentRawContent);
