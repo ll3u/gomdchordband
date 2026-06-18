@@ -34,33 +34,43 @@
 <body>
     <div class="app-container">
         <!-- Top Navigation -->
-        <header class="top-bar">
-            <div class="left-controls">
+        <header class="top-bar" style="display: flex; align-items: center; justify-content: space-between; padding: 0 12px; height: 44px; box-sizing: border-box;">
+            <div class="left-controls" style="display: flex; align-items: center;">
                 <button id="sidebar-toggle" class="btn-icon">
                     <svg class="mdi-icon" viewBox="0 0 24 24"><path d="M3,6H21V8H3V6M3,11H21V13H3V11M3,16H21V18H3V16Z"/></svg>
                 </button>
-                <h1>Band Chords</h1>
+                <!-- KORRIGIERT: Das h1-Tag mit dem Seitentitel wurde restlos entfernt -->
             </div>
-            <div class="actions">
-                <!-- Ersetzt Emojis durch mdi:refresh, mdi:export-variant und mdi:import-variant -->
+            
+            <!-- KORRIGIERT: Alle drei Buttons stehen nun absolut stabil in einer Reihe nebeneinander -->
+            <div class="actions" style="display: flex; align-items: center; gap: 8px;">
+                <!-- Refresh Button -->
                 <button id="btn-refresh">
-                    <svg class="mdi-icon" viewBox="0 0 24 24" style="margin-right: 4px;">
-                          <path d="M0 0h24v24H0z" fill="none" />
-                            <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.5">
-                                <path stroke-miterlimit="10" d="M18.024 7.043A8.374 8.374 0 0 0 3.74 12.955" />
-                                <path stroke-linejoin="round" d="m17.35 2.75l.832 3.372a1.123 1.123 0 0 1-.854 1.382l-3.372.843" />
-                                <path stroke-miterlimit="10" d="M5.976 16.957a8.374 8.374 0 0 0 14.285-5.912" />
-                                <path stroke-linejoin="round" d="m6.65 21.25l-.832-3.372a1.124 1.124 0 0 1 .855-1.382l3.371-.843" />
-                            </g></svg>
-                </button>
-                <button id="btn-export">
-                    <svg class="mdi-icon" viewBox="0 0 24 24" style="margin-right: 4px;">
+                    <svg class="mdi-icon" viewBox="0 0 24 24">
                         <path d="M0 0h24v24H0z" fill="none" />
-                        <path fill="currentColor" d="m23 12l-4-4v3h-9v2h9v3M1 18V6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v3h-2V6H3v12h12v-3h2v3a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2" /></svg>
+                        <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.5">
+                            <path stroke-miterlimit="10" d="M18.024 7.043A8.374 8.374 0 0 0 3.74 12.955" />
+                            <path stroke-linejoin="round" d="m17.35 2.75l.832 3.372a1.123 1.123 0 0 1-.854 1.382l-3.372.843" />
+                            <path stroke-miterlimit="10" d="M5.976 16.957a8.374 8.374 0 0 0 14.285-5.912" />
+                            <path stroke-linejoin="round" d="m6.65 21.25l-.832-3.372a1.124 1.124 0 0 1 .855-1.382l3.371-.843" />
+                        </g>
+                    </svg>
                 </button>
+                
+                <!-- Export Button -->
+                <button id="btn-export">
+                    <svg class="mdi-icon" viewBox="0 0 24 24">
+                        <path d="M0 0h24v24H0z" fill="none" />
+                        <path fill="currentColor" d="m23 12l-4-4v3h-9v2h9v3M1 18V6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v3h-2V6H3v12h12v-3h2v3a2 2 0 0 1-2 2H3a2 2 0 0 1-2 2" />
+                    </svg>
+                </button>
+                
+                <!-- Import Button -->
                 <button id="btn-import">
-                    <svg class="mdi-icon" viewBox="0 0 24 24" style="margin-right: 4px;"> <path d="M0 0h24v24H0z" fill="none" />
-  <path fill="currentColor" d="m14 12l-4-4v3H2v2h8v3m10 2V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v3h2V6h12v12H6v-3H4v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2" /></svg>
+                    <svg class="mdi-icon" viewBox="0 0 24 24"> 
+                        <path d="M0 0h24v24H0z" fill="none" />
+                        <path fill="currentColor" d="m14 12l-4-4v3H2v2h8v3m10 2V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v3h2V6h12v12H6v-3H4v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2" />
+                    </svg>
                 </button>
                 <input type="file" id="import-file" style="display: none;" accept=".json">
             </div>
