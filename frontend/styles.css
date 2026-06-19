@@ -337,220 +337,7 @@ button:hover { background: #3f4a5e; }
     background: #6b7280;
 }
 
-
-/* ========================================================
-   ERWEITERUNG: AKKORD-LAYOUT FÜR CHORDSHEETJS (SCHRITT 1.1)
-   ======================================================== */
-/* Sorgt dafür, dass die Textblöcke sauber als Zeilen laufen */
-.paragraph {
-    margin-bottom: 24px;
-    white-space: pre;
-}
-
-.row {
-    display: block;
-    clear: both;
-}
-
-.column {
-    display: inline-block;
-    vertical-align: bottom;
-    padding-right: 6px; /* Garantiert echten horizontalen Abstand zwischen den Akkorden */
-}
-
-.chord {
-    font-weight: bold;
-    color: var(--primary);
-    display: block;
-    height: 1.3em;
-    margin-bottom: -1px;
-}
-
-/* KORRIGIERT: Verhindert, dass Spalten ohne Text (wie im Intro) 
-   horizontal ineinander geschoben werden */
-.lyrics {
-    display: block;
-    min-height: 1em; /* Erzwingt Platzhalter-Höhe, falls kein Text da ist */
-    color: var(--text-dark);
-}
-
-/* ========================================================
-   ERWEITERUNG: ULTIMATE GUITAR HEADER STYLING (SCHRITT 1.5)
-   ======================================================== */
-.ug-header-block {
-    margin-bottom: 25px;
-    border-bottom: 2px solid #2f3542;
-    padding-bottom: 15px;
-}
-
-.ug-header-title {
-    font-size: 2rem;
-    font-weight: bold;
-    text-transform: capitalize;
-    color: var(--text-dark);
-    margin-bottom: 10px;
-}
-
-.ug-header-meta {
-    font-family: monospace;
-    font-size: 14px;
-    color: #57606f;
-    margin-bottom: 6px;
-}
-
-.ug-song-body {
-    margin-top: 15px;
-}
-
-
-/* ========================================================
-   GEPRÜFT & FIXIERT: AKKORD-LAYOUT FÜR DIV-STRUKTUREN
-   ======================================================== */
-
-/* Zwingt die gesamte Songzeile, sich als einheitlicher Block zu verhalten */
-.song-content .row {
-    display: block !important;
-    clear: both !important;
-    margin-bottom: 4px !important;
-}
-
-/* Zwingt das Akkord-Div und das Text-Div, als vertikale Säule 
-   zusammenzubleiben und sich horizontal aneinanderzureihen */
-.song-content .column {
-    display: inline-flex !important;
-    flex-direction: column !important;
-    vertical-align: bottom !important;
-    padding-right: 8px !important; /* Garantiert den horizontalen Abstand zwischen Akkorden */
-    margin: 0 !important;
-}
-
-/* Formatiert die Akkorde fett und rot */
-.song-content .chord {
-    font-weight: bold !important;
-    color: var(--primary) !important; /* Nutzt dein originales Rot (#ff4757) */
-    display: block !important;
-    height: 1.3em !important;
-    white-space: nowrap !important;
-}
-
-/* Sorgt dafür, dass leere Textstellen (wie im Intro) nicht horizontal 
-   zusammenbrechen, sondern die volle Breite des Akkords einnehmen */
-.song-content .lyrics {
-    display: block !important;
-    min-height: 1.2em !important; /* Gibt leeren Zeilen eine feste Höhe */
-    color: var(--text-dark) !important;
-    white-space: pre !important;
-}
-
-
-/* ========================================================
-   GUI-FEINSCHLIFF: ABSOLUTER HEADER-PADDING-FIX (SCHRITT 3.3)
-   ======================================================== */
-
-/* Korrigiert den Scroll-Container: Wir nehmen die Höhenbegrenzung hier raus,
-   damit die Seite flüssig scrollt und nichts abgeschnitten wird */
-.content-viewer {
-    height: auto !important;
-    padding: 10px !important; /* Weniger Abstand zum Bildschirmrand */
-}
-
-/* Der entscheidende Fix: Wir reduzieren das obere Padding des weißen Blattes 
-   von 40px auf knappe 15px, um den Titel direkt an den oberen Rand zu setzen */
-.canvas-text-wrapper .song-content {
-    padding: 15px 40px 40px 40px !important; /* Oben 15px, Seiten/Unten 40px beibehalten */
-}
-
-/* Zieht den gesamten Metadaten-Block eng zusammen */
-.song-content .ug-header-block {
-    margin-top: 0 !important;
-    margin-bottom: 8px !important;
-    padding-bottom: 4px !important;
-    border-bottom: 2px solid #2f3542 !important;
-}
-
-/* Verkleinert den Songtitel und löscht alle künstlichen Abstände */
-.song-content .ug-header-title {
-    font-size: 1.8rem !important;
-    font-weight: bold !important;
-    margin-top: 0 !important;
-    margin-bottom: 4px !important;
-    color: var(--text-dark) !important;
-    line-height: 1.1 !important;
-}
-
-/* Zieht Tempo, Tuning, Key und Capo ohne Leerzeilen direkt untereinander */
-.song-content .ug-header-meta {
-    font-family: monospace !important;
-    font-size: 13px !important;
-    color: #57606f !important;
-    margin-bottom: 2px !important;
-    line-height: 1.1 !important;
-}
-
-/* Verringert den ungenutzten Abstand unter der horizontalen Trennlinie */
-.song-content .ug-song-body {
-    margin-top: 8px !important;
-}
-
-/* ========================================================
-   GUI-THEMING: SCHWEBENDE SCROLL-STEUERUNG (LIVE-FLOATING)
-   ======================================================== */
-
-/* ========================================================
-   GEPRÜFT: SCHWEBENDE PILLE & COLLAPSIBLE DRAWER FORMAT (SCHRITT 3.7)
-   ======================================================== */
-.action-overlay-container .bpm-slider-container {
-    width: auto !important;
-}
-
-.action-overlay-container .play-btn.active {
-    background-color: var(--primary) !important;
-}
-
-/* Zwingt den Canvas-Bereich, sauber über dem fixierten Footer zu bleiben */
-.content-viewer {
-    margin-bottom: 0px !important;
-}
-
-/* Wenn die Klasse .drawer-closed aktiv ist, fährt die Leiste starr 
-   um 100% ihrer Höhe nach unten aus dem Display heraus! */
-#collapsible-drawer-bar.drawer-closed {
-    transform: translateY(100%);
-}
-
-
-/* ========================================================
-   BÜHNEN-FIX: HÖHEN-TRENNUNG FÜR SMARTPHONES (NUR HANDY)
-   ======================================================== */
-@media (max-width: 600px) {
-    /* 1. Schiebt die schwebende Play/Slider-Pille auf dem Handy 
-       ein Stück höher, damit sie NIEMALS die untere Bar überlagert */
-    .action-overlay-container {
-        bottom: 85px !important;
-        right: 12px !important;
-    }
-
-    /* 2. Zwingt die Werkzeugleiste unten zu einer festen, stabilen Mindesthöhe,
-       damit ausbrechende Buttons den Container sauber nach oben vergrößern */
-    .bottom-bar {
-        min-height: 65px !important;
-        height: auto !important;
-        padding: 8px 12px !important;
-        box-sizing: border-box !important;
-        align-content: center !important;
-    }
-
-    /* Zwingt den Liedtext, Platz für das höhere Handy-Layout zu machen */
-    .content-viewer {
-        margin-bottom: 85px !important;
-    }
-}
-
-/* ========================================================
-   GUI-CLEANUP: STRUKTURIERTE ELEMENT-KLASSEN (2026)
-   ======================================================== */
-
-/* 1. DAS GENERELLE DESIGN-SYSTEM (PC & TABLETS STANDARDS) */
+/* Die schwebende Regler-Pille (FAB) */
 .action-overlay-container {
     position: fixed;
     bottom: 60px;
@@ -559,9 +346,10 @@ button:hover { background: #3f4a5e; }
     display: flex;
     align-items: center;
     gap: 8px;
-    pointer-events: auto;
+    pointer-events: auto; /* Gewährleistet, dass die Klicks durch das Canvas ankommen */
 }
 
+/* Das Gehäuse für den Speed-Slider */
 .action-overlay-container .bpm-slider-container {
     display: flex;
     align-items: center;
@@ -579,7 +367,7 @@ button:hover { background: #3f4a5e; }
     width: 85px;
     accent-color: var(--primary);
     margin: 0;
-    cursor: pointer;
+    cursor: pointer; /* Nur der Slider-Knopf selbst bekommt den Pointer! */
 }
 
 .action-overlay-container #bpm-val-display {
@@ -595,36 +383,26 @@ button:hover { background: #3f4a5e; }
     white-space: nowrap;
 }
 
+/* Der runde Play/Pause-Button */
 .action-overlay-container .play-btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 52px;
-    height: 52px;
+    width: 42px;
+    height: 42px;
     border-radius: 50%;
     background-color: #2ed573;
     border: none;
     color: white;
     box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-    cursor: pointer;
-    padding: 0;
-    margin: 0;
+    cursor: pointer; /* Hier gehört der Pointer hin! */
 }
 
 .action-overlay-container .play-btn.active {
     background-color: var(--primary) !important;
 }
 
-.action-overlay-container .play-btn svg {
-    width: 22px;
-    height: 22px;
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 1.5;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-}
-
+/* Der runde Pfeil-Button zum Einklappen */
 .action-overlay-container .btn-collapse {
     display: inline-flex;
     align-items: center;
@@ -637,11 +415,10 @@ button:hover { background: #3f4a5e; }
     color: white;
     box-shadow: 0 4px 12px rgba(0,0,0,0.5);
     cursor: pointer;
-    padding: 0;
-    margin: 0;
 }
 
-.action-overlay-container .btn-collapse svg {
+.action-overlay-container .btn-collapse svg,
+.action-overlay-container .play-btn svg {
     width: 22px;
     height: 22px;
     fill: none;
@@ -651,6 +428,7 @@ button:hover { background: #3f4a5e; }
     stroke-linejoin: round;
 }
 
+/* DIE FESTE WERKZEUGLEISTE UNTEN */
 .bottom-bar {
     position: fixed;
     bottom: 0;
@@ -682,7 +460,6 @@ button:hover { background: #3f4a5e; }
     justify-content: center;
     width: 36px;
     height: 36px;
-    padding: 0;
     background-color: #2f3542;
     border: none;
     color: white;
@@ -717,7 +494,6 @@ button:hover { background: #3f4a5e; }
 .bottom-bar .canvas-tools-group .btn-undo {
     width: 36px;
     height: 36px;
-    padding: 0;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -754,13 +530,12 @@ button:hover { background: #3f4a5e; }
 .bottom-bar .btn-danger {
     width: 36px;
     height: 36px;
-    padding: 0;
     display: inline-flex;
     align-items: center;
     justify-content: center;
 }
 
-/* PC Standard-Textfluss bis zum Anschlag */
+/* PC Standard-Zustand: Der Viewer darf bis ganz unten gleiten */
 .content-viewer {
     margin-bottom: 0px !important;
 }
@@ -769,10 +544,8 @@ button:hover { background: #3f4a5e; }
     transform: translateY(200%) !important;
 }
 
-
-/* 2. DIE RESPONSIVE-MASCHINE (NUR FÜR HANDYS MAX 600PX) */
+/* SMARTPHONE MEDIA-QUERY (MAX-WIDTH: 600PX) */
 @media (max-width: 600px) {
-    /* Die Pille startet standardmäßig ganz unten (16px), da die Bar zu ist */
     .action-overlay-container {
         position: fixed !important;
         bottom: 16px !important; 
@@ -789,8 +562,50 @@ button:hover { background: #3f4a5e; }
         box-sizing: border-box !important;
     }
 
-    /* Der Textviewer nutzt beim Laden sofort den maximalen Platz (0px Margin) */
     .content-viewer {
         margin-bottom: 0px !important;
     }
+}
+
+
+/* ========================================================
+   AKKORDBLATT-RENDERING: FLEX-SÄULEN & TABSTOP-FIX (FINAL)
+   ======================================================== */
+
+/* Zwingt jede Songzeile, sich starr horizontal als Band auszubreiten */
+.song-content .row {
+    display: block !important;
+    clear: both !important;
+    white-space: nowrap !important; /* Verhindert das willkürliche Umbrechen mitten im Wort */
+}
+
+/* Hält den Akkord und die Textsilbe als unzertrennliche vertikale Einheit zusammen.
+   Der magische Kniff: min-width: 1ch zwingt leere Spalten am Zeilenanfang, 
+   physikalisch exakt die Breite von 4 echten Leerzeichen einzunehmen! */
+.song-content .column {
+    display: inline-flex !important;
+    flex-direction: column !important;
+    vertical-align: bottom !important;
+    min-width: 1ch !important; /* Reißt die 4 Leerzeichen am Anfang millimetergenau auf */
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* Die Akkorde stehen fett, rot und isoliert über den Buchstaben */
+.song-content .chord {
+    font-weight: bold !important;
+    color: var(--primary) !important; /* Nutzt dein originales Rot */
+    display: block !important;
+    height: 1.3em !important;
+    margin-bottom: 2px !important;
+    white-space: nowrap !important;
+    padding-right: 4px !important; /* Verhindert das Ineinanderkrachen am Zeilenende (z.B. bei D# Fsus) */
+}
+
+/* Schützt die Leerzeichen und Silben vor dem horizontalen Kollabieren */
+.song-content .lyrics {
+    display: block !important;
+    min-height: 1em !important;
+    color: var(--text-dark) !important;
+    white-space: pre !important; /* Schützt alle Leerzeichen und Tabs innerhalb des Dokuments */
 }
