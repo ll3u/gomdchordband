@@ -69,13 +69,15 @@ async function loadSongs() {
         if (navigator.onLine) {
             console.log(`Starte automatischen Offline-Sync für ${songs.length} Songs...`);
             
-            // Nutze Promise.all, um alle Songs parallel im Hintergrund anzufordern
-            Promise.all(songs.map(song => 
+            songs.forEach(song => {
+                // This simple fetch will trigger the service worker's caching logic
                 fetch(`/api/songs/${encodeURIComponent(song.id)}`)
-                    .then(r => console.log(`✓ Gecacht: ${song.title}`))
-                    .catch(e => console.error(`❌ Fehler beim Cachen von ${song.title}`, e))
-            )).then(() => {
-                console.log("🎉 Alle Songs erfolgreich offline verfügbar!");
+                    .then(response => {
+                        if (response.ok) {
+                            console.log(`✓ Gecacht: ${song.title}`);
+                        }
+                    })
+                    .catch(e => console.error(`❌ Fehler beim Cachen von ${song.title}`, e));
             });
         }
     } catch (err) {

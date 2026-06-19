@@ -73,39 +73,39 @@ self.addEventListener('fetch', (event) => {
 });
 
 // Handle API requests with network-first, cache-fallback strategy
+// Handle API requests with network-first, cache-fallback strategy
 async function handleApiRequest(event) {
   const cache = await caches.open(DATA_CACHE);
-  const url = new URL(event.request.url); // 1. NEU: Die URL parsen, um an den sauberen Pfad zu kommen
+  const url = new URL(event.request.url);
 
-  // NEU: Definiert eine absolute Obergrenze von 1.5 Sekunden für das Netzwerk
+  // Definiert eine absolute Obergrenze von 1.5 Sekunden für das Netzwerk
   const timeoutPromise = new Promise((_, reject) => 
     setTimeout(() => reject(new Error('Network Timeout')), 1500)
   );
 
   try {
-    // KORRIGIERT: Rennen zwischen dem echten Go-Backend und dem 1.5s Timeout.
-    // Wenn der Server aus ist, bricht das Rennen nach spätestens 1.5s ab und springt in den catch-Block!
+    // Rennen zwischen dem echten Go-Backend und dem 1.5s Timeout.
     const networkResponse = await Promise.race([
       fetch(event.request),
       timeoutPromise
     ]);
 
     if (networkResponse.ok) {
-      // 2. GEÄNDERT: Wir nutzen url.pathname statt event.request.url als Schlüssel
-      await cache.put(url.pathname, networkResponse.clone());
+      // Use the exact URL as cache key for API requests
+      await cache.put(event.request.url, networkResponse.clone());
     }
     return networkResponse;
   } catch (error) {
     console.log("Offline-Modus: Lade aus Cache für Pfad:", url.pathname);
 
-    // 3. GEÄNDERT: Auch hier nach dem sauberen url.pathname im Cache suchen
-    const cachedResponse = await cache.match(url.pathname);
+    // Try to match using the exact request URL
+    const cachedResponse = await cache.match(event.request.url);
     if (cachedResponse) {
       return cachedResponse;
     }
 
-    // 4. GEÄNDERT: .includes() auf den sauberen Pfad anwenden
-    if (url.pathname.includes('/api/songs/')) {
+    // Handle specific song requests with error fallback
+    if (url.pathname.startsWith('/api/songs/')) {
       const fallback = {
         id: "error",
         title: "Offline-Fehler",
@@ -115,6 +115,7 @@ async function handleApiRequest(event) {
         headers: { 'Content-Type': 'application/json' }
       });
     }
+    
     return new Response('[]', { headers: { 'Content-Type': 'application/json' } });
   }
 }
@@ -148,3 +149,5 @@ self.addEventListener('message', (event) => {
         );
     }
 });
+
+
