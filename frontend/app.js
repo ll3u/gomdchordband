@@ -17,6 +17,7 @@ let lastScrollTime = 0;
 let scrollAccumulator = 0;
 
 let currentTransposeOffset = 0;
+let wakeLock = null;
 
 // Canvas State
 const canvas = document.getElementById('annotation-canvas');
@@ -613,6 +614,29 @@ function loadCanvasData() {
     redrawCanvas();
 }
 
+async function requestWakeLock() {
+  try {
+    if ('wakeLock' in navigator) {
+      wakeLock = await navigator.wakeLock.request('screen');
+      wakeLock.addEventListener('release', () => {
+        console.log('Wake Lock released');
+        wakeLock = null;
+      });
+    }
+  } catch (err) {
+    console.error('Failed to enable wake lock:', err);
+  }
+}
+
+// Release screen wake lock
+function releaseWakeLock() {
+  if (wakeLock !== null) {
+    wakeLock.release().then(() => {
+      wakeLock = null;
+    });
+  }
+}
+
 // Toolbar Werkzeuge steuern
 document.getElementById('tool-draw').addEventListener('click', () => {
     currentTool = 'draw';
@@ -753,6 +777,24 @@ window.onload = () => {
             colorIcon.style.fill = e.target.value;
         });
     }
+
+    // Handle fullscreen changes (e.g., user presses Esc)
+    document.addEventListener('fullscreenchange', () => {
+    if (document.fullscreenElement) {
+        requestWakeLock();
+    } else {
+        releaseWakeLock();
+    }
+    });
+
+    // Handle page visibility changes
+    document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && document.fullscreenElement) {
+        requestWakeLock();
+    } else {
+        releaseWakeLock();
+    }
+    });
 };
 
 // Reagiert sofort, wenn man den Schieberegler bewegt
@@ -858,14 +900,12 @@ if (btnCollapse && drawerBar && overlayContainer && arrowPath && contentViewer) 
     });
 }
 
-document.getElementById('btn-fullscreen').addEventListener('click', () => {
-    // Sicherstellen, dass das Dokument nicht bereits im Vollbild ist
-    if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen()
-            .catch(err => {
-                console.error(`Vollbild verweigert: ${err.message}`);
-            });
-    } else {
-        document.exitFullscreen();
-    }
+document.getElementById('btn-fullscreen').addEventListener('click', async () => {
+  if (!document.fullscreenElement) {
+    await document.documentElement.requestFullscreen();
+    await requestWakeLock();
+  } else {
+    releaseWakeLock();
+    document.exitFullscreen();
+  }
 });
