@@ -491,3 +491,98 @@ button:hover { background: #3f4a5e; }
 .song-content .ug-song-body {
     margin-top: 8px !important;
 }
+
+/* ========================================================
+   GUI-THEMING: SCHWEBENDE SCROLL-STEUERUNG (LIVE-FLOATING)
+   ======================================================== */
+
+/* ========================================================
+   GEPRÜFT: SCHWEBENDE PILLE & COLLAPSIBLE DRAWER FORMAT (SCHRITT 3.7)
+   ======================================================== */
+.action-overlay-container .bpm-slider-container {
+    width: auto !important;
+}
+
+.action-overlay-container .play-btn.active {
+    background-color: var(--primary) !important;
+}
+
+/* Zwingt den Canvas-Bereich, sauber über dem fixierten Footer zu bleiben */
+.content-viewer {
+    margin-bottom: 0px !important;
+}
+
+/* Wenn die Klasse .drawer-closed aktiv ist, fährt die Leiste starr 
+   um 100% ihrer Höhe nach unten aus dem Display heraus! */
+#collapsible-drawer-bar.drawer-closed {
+    transform: translateY(100%);
+}
+
+
+/* ========================================================
+   BÜHNEN-FIX: HÖHEN-TRENNUNG FÜR SMARTPHONES (NUR HANDY)
+   ======================================================== */
+@media (max-width: 600px) {
+    /* 1. Schiebt die schwebende Play/Slider-Pille auf dem Handy 
+       ein Stück höher, damit sie NIEMALS die untere Bar überlagert */
+    .action-overlay-container {
+        bottom: 85px !important;
+        right: 12px !important;
+    }
+
+    /* 2. Zwingt die Werkzeugleiste unten zu einer festen, stabilen Mindesthöhe,
+       damit ausbrechende Buttons den Container sauber nach oben vergrößern */
+    .bottom-bar {
+        min-height: 65px !important;
+        height: auto !important;
+        padding: 8px 12px !important;
+        box-sizing: border-box !important;
+        align-content: center !important;
+    }
+
+    /* Zwingt den Liedtext, Platz für das höhere Handy-Layout zu machen */
+    .content-viewer {
+        margin-bottom: 85px !important;
+    }
+}
+
+/* ========================================================
+   GUI-FIX: DRAWER-COLLAPSE FÜR DIE DOPPELTE REIHE (SCHRITT 3.8)
+   ======================================================== */
+@media (max-width: 600px) {
+    /* 1. Zustand OFFEN: Die Pille steht standardmäßig über der doppelten Reihe */
+    .action-overlay-container {
+        position: fixed !important;
+        bottom: 110px !important; /* Blockiert die unpassenden JS-Einträge auf dem Smartphone */
+        right: 12px !important;
+        left: auto !important;
+        transition: bottom 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        z-index: 100 !important;
+    }
+
+    /* 2. Zwingt die Werkzeugleiste unten zu der stabilen Doppelreihen-Höhe */
+    .bottom-bar {
+        min-height: 95px !important;
+        height: auto !important;
+        padding: 8px 12px !important;
+        box-sizing: border-box !important;
+    }
+
+    /* Schiebt die doppelte Werkzeugleiste im geschlossenen Zustand aus dem Bild */
+    #collapsible-drawer-bar.drawer-closed {
+        transform: translateY(200%) !important;
+    }
+
+    /* 3. UNFEHLBARER CSS-TRIGGER (Zustand GESCHLOSSEN):
+       Sobald die Werkzeugleiste die Klasse .drawer-closed hat, zwingen wir die 
+       schwebende Pille vollautomatisch und mit !important auf 16px herunter! */
+    #collapsible-drawer-bar.drawer-closed ~ .action-overlay-container,
+    .action-overlay-container.drawer-closed-overlay {
+        bottom: 16px !important; /* Bricht die 110px auf dem Handy radikal auf */
+    }
+
+    /* Gewährt dem Liedtext optimalen Platz über der doppelten Reihe */
+    .content-viewer {
+        margin-bottom: 110px !important;
+    }
+}
