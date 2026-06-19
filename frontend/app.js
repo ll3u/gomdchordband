@@ -449,13 +449,18 @@ function draw(e) {
 function stopDrawing(e) {
     if (touchTimeout) clearTimeout(touchTimeout);
     
-    if (e.touches && e.touches.length === 0) {
+    if (e && e.touches && e.touches.length === 0) {
         isTwoFingerMode = false;
         startDistance = 0;
     }
 
     if (!isDrawing) return;
     isDrawing = false;
+
+    // 1. Zuerst die berührten Pfade komplett entfernen
+    cleanUpErasedStrokes();
+
+    // 2. Danach den sauberen Zustand speichern
     saveCanvasData();
 }
 
@@ -517,6 +522,45 @@ function redrawCanvas() {
         ctx.stroke();
     });
     ctx.globalCompositeOperation = 'source-over'; // Zurücksetzen
+}
+function cleanUpErasedStrokes() {
+    // Hole den letzten gezeichneten Strich (den Radierer-Pfad)
+    const lastStroke = strokes[strokes.length - 1];
+    
+    // Falls kein Strich existiert oder es kein Radiergummi war -> abbrechen
+    if (!lastStroke || lastStroke.tool !== 'erase') return;
+
+    // Entferne den Radiergummi-Strich selbst aus dem Array (er wird nicht mehr gebraucht)
+    strokes.pop();
+
+    // Filtere das strokes-Array: Behalte nur Pfade, die NICHT berührt wurden
+    strokes = strokes.filter(stroke => {
+        // Andere Radiergummis im Array ignorieren
+        if (stroke.tool === 'erase') return true; 
+        if (stroke.points.length < 2) return true;
+
+        // Erstelle den Pfad des normalen Strichs im Hintergrund für die Prüfung
+        const path2d = new Path2D();
+        path2d.moveTo(stroke.points[0].x, stroke.points[0].y);
+        for (let i = 1; i < stroke.points.length; i++) {
+            path2d.lineTo(stroke.points[i].x, stroke.points[i].y);
+        }
+
+        // Nutze die echte Dicke des gezeichneten Strichs plus die Dicke des Radierers
+        // Das sorgt dafür, dass die Kollision absolut präzise erkannt wird
+        ctx.lineWidth = stroke.size + lastStroke.size; 
+
+        // Prüfe, ob mindestens ein Punkt des Radiergummis diesen Strich schneidet
+        const isTouched = lastStroke.points.some(point => 
+            ctx.isPointInStroke(path2d, point.x, point.y)
+        );
+
+        // Wenn er berührt wurde, filtere ihn heraus (gibt false zurück)
+        return !isTouched;
+    });
+
+    // Zeichne das Canvas neu (die getroffenen Pfade verschwinden komplett)
+    redrawCanvas();
 }
 
 // 5. LOCAL STORAGE (Lokale Notizen sichern)
