@@ -38,6 +38,23 @@ const wrapper = document.getElementById('wrapper');
 sidebarToggle.addEventListener('click', () => {
     if (window.innerWidth <= 1024) {
         sidebar.classList.toggle('open');
+        // Disable pointer-events on top-bar EXCEPT for the menu toggle button
+        const topBar = document.querySelector('.top-bar');
+        const toggleButton = document.getElementById('sidebar-toggle');
+        if (topBar) {
+            if (sidebar.classList.contains('open')) {
+                // Disable pointer-events on top-bar
+                topBar.style.pointerEvents = 'none';
+                // But re-enable for the toggle button so it can be clicked to close
+                if (toggleButton) {
+                    toggleButton.style.pointerEvents = 'auto';
+                }
+            } else {
+                // Re-enable pointer-events on top-bar
+                topBar.style.pointerEvents = 'auto';
+            }
+        } else {
+        }
     } else {
         sidebar.classList.toggle('closed');
     }
@@ -313,6 +330,13 @@ window.addEventListener('resize', resizeCanvas);
 function startDrawing(e) {
     if (touchTimeout) clearTimeout(touchTimeout);
 
+    // DEBUG: Log which element is receiving touch
+    
+    // BEVOR ALLEM: Wenn Sidebar offen ist, alle Touch-Events durchlassen
+    if (sidebar.classList.contains('open')) {
+        return;
+    }
+
     // 1. ZWEI-FINGER-MODUS (ZOOM & SCROLL) INITIALISIEREN
     if (e.touches && e.touches.length === 2) {
         isDrawing = false;
@@ -339,6 +363,8 @@ function startDrawing(e) {
         const originY = midY / currentScale;
 
         wrapper.style.transformOrigin = `${originX}px ${originY}px`;
+        
+        e.preventDefault();
         return;
     }
 
@@ -366,9 +392,16 @@ function startDrawing(e) {
 }
 
 function draw(e) {
+    // DEBUG: Log touchmove events
+    
+    // BEVOR ALLEM: Wenn Sidebar offen ist, alle Touch-Events durchlassen
+    if (sidebar.classList.contains('open')) {
+        return;
+    }
+
     // A) LOGIK FÜR ZWEI FINGER (SCROLLEN & ZOOMEN)
     if (isTwoFingerMode && e.touches && e.touches.length === 2) {
-        e.preventDefault(); 
+        e.preventDefault();
 
         const t1 = e.touches[0];
         const t2 = e.touches[1];
@@ -387,7 +420,6 @@ function draw(e) {
         // ZWEI-FINGER-SCROLLING
         const currentY = (t1.clientY + t2.clientY) / 2;
         const deltaY = touchStartScrollY - currentY;
-
         scrollContainer.scrollBy(0, deltaY * (1 / currentScale));
         touchStartScrollY = currentY;
         return;
@@ -395,7 +427,8 @@ function draw(e) {
 
     // B) LOGIK FÜR EINEN FINGER (MALEN)
     if (!isDrawing) return;
-    e.preventDefault(); 
+    
+    e.preventDefault();
 
     const coords = getCoords(e);
 
@@ -408,6 +441,7 @@ function draw(e) {
 
 function stopDrawing(e) {
     if (touchTimeout) clearTimeout(touchTimeout);
+    
     
     if (e && e.touches && e.touches.length === 0) {
         isTwoFingerMode = false;
@@ -451,6 +485,39 @@ canvas.removeEventListener('touchend', stopDrawing);
 canvas.addEventListener('touchstart', startDrawing, {passive: false});
 canvas.addEventListener('touchmove', draw, {passive: false});
 canvas.addEventListener('touchend', stopDrawing);
+
+// Add debug logging for sidebar touch events
+let sidebarTouchStartY = 0;
+
+sidebar.addEventListener('touchstart', (e) => {
+    // Store initial touch position for manual scrolling
+    if (e.touches && e.touches.length > 0) {
+        sidebarTouchStartY = e.touches[0].clientY;
+    }
+}, {passive: true});
+
+sidebar.addEventListener('touchend', (e) => {
+    sidebarTouchStartY = 0;
+}, {passive: true});
+
+sidebar.addEventListener('touchmove', (e) => {
+    
+    // Try explicit scrolling - prevent default and manually scroll
+    if (e.cancelable && !e.defaultPrevented && e.touches && e.touches.length > 0) {
+        e.preventDefault();
+        const deltaY = e.touches[0].clientY - sidebarTouchStartY;
+        sidebarTouchStartY = e.touches[0].clientY;
+        const newScrollTop = sidebar.scrollTop - deltaY;
+        sidebar.scrollTop = newScrollTop;
+    }
+}, {passive: false});
+
+// Add debug logging for document touch events
+document.addEventListener('touchstart', (e) => {
+}, {passive: true, capture: true});
+
+document.addEventListener('touchmove', (e) => {
+}, {passive: true, capture: true});
 
 // Event Listener für Touch (Tablet) & Maus
 canvas.addEventListener('mousedown', startDrawing);
@@ -595,8 +662,54 @@ document.getElementById('import-file').addEventListener('change', (e) => {
     reader.readAsText(file);
 });
 
+// Function to update top-bar pointer-events based on sidebar state
+function updateTopBarPointerEvents() {
+    const topBar = document.querySelector('.top-bar');
+    const toggleButton = document.getElementById('sidebar-toggle');
+    const isMobile = window.innerWidth <= 1024;
+    const isOpen = sidebar.classList.contains('open');
+    if (topBar && isMobile) {
+        if (isOpen) {
+            topBar.style.pointerEvents = 'none';
+            if (toggleButton) {
+                toggleButton.style.pointerEvents = 'auto';
+            }
+        } else {
+            topBar.style.pointerEvents = 'auto';
+        }
+    } else if (topBar) {
+        topBar.style.pointerEvents = 'auto';
+    }
+}
+
 // Initialisierung beim Start
 window.onload = () => {
+    
+    // Set initial top-bar pointer-events state
+    updateTopBarPointerEvents();
+    
+    // Update on resize
+    window.addEventListener('resize', updateTopBarPointerEvents);
+    
+    // Add touch event logging to content viewer
+    const contentViewer = document.querySelector('.content-viewer');
+    if (contentViewer) {
+        contentViewer.addEventListener('touchstart', (e) => {
+        }, {passive: true});
+        
+        contentViewer.addEventListener('touchmove', (e) => {
+        }, {passive: true});
+    }
+    
+    // Add touch event logging to wrapper (canvas container)
+    if (wrapper) {
+        wrapper.addEventListener('touchstart', (e) => {
+        }, {passive: true});
+        
+        wrapper.addEventListener('touchmove', (e) => {
+        }, {passive: true});
+    }
+    
     loadSongs();
     document.getElementById('btn-refresh').addEventListener('click', loadSongs);
 
@@ -710,8 +823,8 @@ if (btnCollapse && drawerBar && overlayContainer && arrowPath && contentViewer) 
             arrowPath.setAttribute('d', 'M19 9L12 15L6 9'); // Pfeil zeigt nach unten
             
             if (isMobile) {
-                contentViewer.style.setProperty('margin-bottom', '140px', 'important');
-                overlayContainer.style.setProperty('bottom', '140px', 'important');
+                contentViewer.style.setProperty('margin-bottom', '100px', 'important');
+                overlayContainer.style.setProperty('bottom', '112px', 'important');
             } else {
                 contentViewer.style.margin_bottom = '54px';
                 overlayContainer.style.bottom = '60px';

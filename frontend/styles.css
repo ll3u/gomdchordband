@@ -25,6 +25,10 @@ body, html {
     overflow: hidden;
 }
 
+.sidebar.open {
+    overflow-y: auto;
+}
+
 /* ============================================
    LAYOUT & CONTAINERS
    ============================================ */
@@ -41,6 +45,7 @@ body, html {
     flex: 1;
     overflow: hidden;
     position: relative;
+    z-index: 2;
 }
 
 /* Header */
@@ -52,6 +57,8 @@ body, html {
     align-items: center;
     padding: 0 20px;
     border-bottom: 1px solid #2f3542;
+    position: relative;
+    z-index: 1;
 }
 
 .left-controls {
@@ -74,14 +81,17 @@ body, html {
     width: 280px;
     background-color: var(--bg-sidebar);
     padding: 20px;
-    overflow-y: auto;
+    overflow-y: scroll;
+    -webkit-overflow-scrolling: touch;
     transition: transform 0.3s ease;
-    position: absolute;
+    position: fixed;
     top: 0;
-    bottom: 0;
     left: 0;
-    z-index: 10;
+    bottom: 0;
+    right: 0;
+    z-index: 2000;
     border-right: 1px solid #2f3542;
+    touch-action: pan-y;
 }
 
 .sidebar h2 {
@@ -92,6 +102,9 @@ body, html {
 
 #song-list {
     list-style: none;
+    margin: 0;
+    padding: 0;
+    height: 100%;
 }
 
 #song-list li {
@@ -104,6 +117,7 @@ body, html {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    touch-action: manipulation;
 }
 
 #song-list li.active {
@@ -159,6 +173,20 @@ body, html {
     pointer-events: auto;
     z-index: 2;
     touch-action: pan-x pan-y;
+}
+
+/* When sidebar is open on mobile, disable canvas touch to allow sidebar scrolling */
+.sidebar.open ~ .content-viewer .canvas-text-wrapper,
+.sidebar.open ~ .content-viewer .canvas-text-wrapper * {
+    pointer-events: none !important;
+}
+
+/* Prevent content viewer from scrolling when sidebar is open on mobile */
+@media (max-width: 1024px) {
+    .sidebar.open ~ .content-viewer {
+        overflow: hidden;
+        pointer-events: none;
+    }
 }
 
 /* ============================================
@@ -462,6 +490,7 @@ button:hover {
 @media (min-width: 1025px) {
     .sidebar {
         position: relative;
+        height: calc(100vh - 60px);
         transform: translateX(0) !important;
     }
     .sidebar.closed {
@@ -472,10 +501,15 @@ button:hover {
     }
 }
 
-/* Tablet/Mobile: Sidebar as overlay */
+/* Tablet/Mobile: Sidebar as full-width overlay */
 @media (max-width: 1024px) {
     .sidebar {
+        position: fixed;
         transform: translateX(-100%);
+        height: 100vh;
+        width: 100%;
+        left: 0;
+        -webkit-overflow-scrolling: touch;
     }
     .sidebar.open {
         transform: translateX(0);
@@ -501,7 +535,7 @@ button:hover {
         flex-direction: column;
         gap: 12px;
         padding: 10px 10px;
-        margin-bottom: 30px;
+        margin-bottom: 8px;
         border-radius: 8px;
         border: 1px solid #2f3542;
         min-height: auto !important;
