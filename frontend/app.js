@@ -677,59 +677,55 @@ document.getElementById('btn-undo').addEventListener('click', () => {
     redrawCanvas();
 });
 
-    // KORRIGIERT: Setzt den korrekten Abstand von 140px sofort beim ersten Laden der App
-    const btnCollapse = document.getElementById('btn-footer-collapse');
-    const drawerBar = document.getElementById('collapsible-drawer-bar');
-    const overlayContainer = document.querySelector('.action-overlay-container');
-    const arrowPath = document.getElementById('svg-collapse-arrow');
-    const contentViewer = document.querySelector('.content-viewer');
+const btnCollapse = document.getElementById('btn-footer-collapse');
+const drawerBar = document.getElementById('collapsible-drawer-bar');
+const overlayContainer = document.querySelector('.action-overlay-container');
+const arrowPath = document.getElementById('svg-collapse-arrow');
+const contentViewer = document.querySelector('.content-viewer');
 
-    if (btnCollapse && drawerBar && overlayContainer && arrowPath && contentViewer) {
-        let isDrawerOpen = true; // Startet offen
-        
-        // ========================================================
-        // INITIALISIERUNG BEIM ERSTEN LADEN (START-TRICK)
-        // ========================================================
-        const isMobileOnLoad = window.innerWidth <= 600;
-        if (isMobileOnLoad) {
-            // Zwingt die Pille und den Viewer sofort beim Start auf die korrekten 140px Höhe
-            contentViewer.style.setProperty('margin-bottom', '140px', 'important');
-            overlayContainer.style.setProperty('bottom', '140px', 'important');
-        }
-        // ========================================================
-        
-        btnCollapse.addEventListener('click', () => {
-            isDrawerOpen = !isDrawerOpen;
-            const isMobile = window.innerWidth <= 600;
-
-            if (isDrawerOpen) {
-                // 1. ZUSTAND OFFEN: Werkzeuge sichtbar
-                drawerBar.classList.remove('drawer-closed');
-                arrowPath.setAttribute('d', 'M19 9L12 15L6 9'); // Pfeil nach unten
-                
-                if (isMobile) {
-                    contentViewer.style.setProperty('margin-bottom', '140px', 'important');
-                    overlayContainer.style.setProperty('important', '140px', 'important');
-                    // Sicherheits-Fix: Schreibt es direkt als Inline-Style, um CSS zu überstimmen
-                    overlayContainer.style.setProperty('bottom', '140px', 'important');
-                } else {
-                    contentViewer.style.margin_bottom = '54px';
-                    overlayContainer.style.bottom = '60px';
-                }
-            } else {
-                // 2. ZUSTAND GESCHLOSSEN: Werkzeuge ausgeblendet
-                drawerBar.classList.add('drawer-closed');
-                arrowPath.setAttribute('d', 'M6 15L12 9L18 15'); // Pfeil nach oben
-                
-                if (isMobile) {
-                    contentViewer.style.setProperty('margin-bottom', '0px', 'important');
-                    overlayContainer.style.setProperty('bottom', '16px', 'important');
-                } else {
-                    contentViewer.style.margin_bottom = '16px';
-                    overlayContainer.style.bottom = '16px';
-                }
-            }
-            
-            if (typeof resizeCanvas === "function") resizeCanvas();
-        });
+if (btnCollapse && drawerBar && overlayContainer && arrowPath && contentViewer) {
+    let isDrawerOpen = false; // KORRIGIERT: Startet ab jetzt standardmäßig GESCHLOSSEN (false)
+    
+    // INITIALISIERUNG BEIM START (Zwingt Pille und Text ganz nach unten)
+    const isMobileOnLoad = window.innerWidth <= 600;
+    if (isMobileOnLoad) {
+        contentViewer.style.setProperty('margin-bottom', '0px', 'important');
+        overlayContainer.style.setProperty('bottom', '16px', 'important');
+    } else {
+        contentViewer.style.margin_bottom = '16px';
+        overlayContainer.style.bottom = '16px';
     }
+    
+    btnCollapse.addEventListener('click', () => {
+        isDrawerOpen = !isDrawerOpen;
+        const isMobile = window.innerWidth <= 600;
+
+        if (isDrawerOpen) {
+            // 1. AUFKLAPPEN (Werkzeuge einblenden)
+            drawerBar.classList.remove('drawer-closed');
+            arrowPath.setAttribute('d', 'M19 9L12 15L6 9'); // Pfeil zeigt nach unten
+            
+            if (isMobile) {
+                contentViewer.style.setProperty('margin-bottom', '140px', 'important');
+                overlayContainer.style.setProperty('bottom', '140px', 'important');
+            } else {
+                contentViewer.style.margin_bottom = '54px';
+                overlayContainer.style.bottom = '60px';
+            }
+        } else {
+            // 2. ZUKLAPPEN (Werkzeuge verstecken)
+            drawerBar.classList.add('drawer-closed');
+            arrowPath.setAttribute('d', 'M6 15L12 9L18 15'); // Pfeil zeigt nach oben
+            
+            if (isMobile) {
+                contentViewer.style.setProperty('margin-bottom', '0px', 'important');
+                overlayContainer.style.setProperty('bottom', '16px', 'important');
+            } else {
+                contentViewer.style.margin_bottom = '16px';
+                overlayContainer.style.bottom = '16px';
+            }
+        }
+        
+        if (typeof resizeCanvas === "function") resizeCanvas();
+    });
+}
