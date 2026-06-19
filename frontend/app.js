@@ -182,8 +182,17 @@ function renderChordSheet() {
 
         const ugParser = new ChordSheetJS.UltimateGuitarParser();
         const ugSong = ugParser.parse(songBodyText);
+        
+        let transposedSong = null;
+        if (currentTransposeOffset !== 0 && typeof ChordSheetJS.Chord !== 'undefined') {
+            transposedSong = ugSong.transpose(currentTransposeOffset);
+        }
+
+        let baseSong = transposedSong ?? ugSong;
+        const sharpSong = baseSong.useModifier('#');
+
         const cpFormatter = new ChordSheetJS.ChordProFormatter();
-        const cpBody = cpFormatter.format(ugSong);
+        const cpBody = cpFormatter.format(sharpSong);
 
         const cpParser = new ChordSheetJS.ChordProParser();
         const cpSong = cpParser.parse(cpBody);
@@ -193,63 +202,6 @@ function renderChordSheet() {
 
         // HTML in das Dokument schreiben
         document.getElementById('song-render').innerHTML = '<div class="ug-header-block">' + headerHtml + '</div><div class="ug-song-body">' + mainBodyHtml + '</div>';
-
-        // ========================================================
-        // LIVE-HTML-TRANSPONIERUNG ÜBER DIE NATIVEN CHORDSHEETJS-KLASSEN
-        // ========================================================
-        // Wenn ein Versatz eingestellt ist, suchen wir alle erzeugten Akkord-Elemente direkt im HTML!
-        if (currentTransposeOffset !== 0 && typeof ChordSheetJS.Chord !== 'undefined') {
-            const chordElements = document.querySelectorAll('#song-render .chord');
-            
-            // Tabelle für die Umwandlung von unleserlichen Flats in griffige Kreuze
-            const flatToSharpMap = {
-                "Db": "C#", "Eb": "D#", "Gb": "F#", "Ab": "G#"
-            };
-            
-            chordElements.forEach(el => {
-                const rawChordText = el.textContent.trim();
-                if (!rawChordText) return;
-                
-                try {
-                    const chordObj = ChordSheetJS.Chord.parse(rawChordText);
-                    const transposedChord = chordObj.transpose(currentTransposeOffset);
-                    
-                    // 1. Zuerst normalisieren: Macht aus B# ein C und aus E# ein F!
-                    const normalized = transposedChord.normalize();
-                    let chordString = normalized.toString();
-                    
-                    // 2. Unnatürliche Noten direkt abfangen
-                    if (chordString.startsWith("B#")) {
-                        chordString = "C" + chordString.substring(2);
-                    } else if (chordString.startsWith("E#")) {
-                        chordString = "F" + chordString.substring(2);
-                    }
-                    
-                    // 3. Flats in Kreuze umwandeln (außer Bb, das wird deutsches B)
-                    const rootTwo = chordString.substring(0, 2);
-                    if (flatToSharpMap[rootTwo]) {
-                        chordString = flatToSharpMap[rootTwo] + chordString.substring(2);
-                    }
-                    
-                    // 4. DEUTSCHE ANNOTATION (H statt B / B statt Bb)
-                    // Wenn der Akkord mit "Bb" beginnt (englisches B), wird es zum deutschen "B"
-                    if (chordString.startsWith("Bb")) {
-                        chordString = "B" + chordString.substring(2);
-                    }
-                    // Wenn der Akkord mit einem reinen "B" beginnt (englisches H), 
-                    // machen wir ein deutsches "H" daraus.
-                    else if (chordString.startsWith("B") && chordString.charAt(1) !== 'b' && chordString.charAt(1) !== '#') {
-                        chordString = "H" + chordString.substring(1);
-                    }
-                    
-                    el.textContent = chordString;
-                } catch (chordError) {
-                    //console.log("Überspringe ungültiges Akkord-Symbol:", rawChordText);
-                }
-            });
-        }
-        // ========================================================
-
     } catch (e) {
         console.error("Rendering fehlgeschlagen, nutze Fallback:", e);
         if (window.markdownit) {
