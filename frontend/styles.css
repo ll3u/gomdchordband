@@ -8,63 +8,6 @@
     --accent: #2ed573;
 }
 
-@media (max-width: 650px) {
-    .bottom-bar {
-        height: auto; /* Erlaubt der Leiste, höher zu werden */
-        flex-direction: column; /* Stapelt die Elemente übereinander */
-        gap: 12px;
-        padding: 10px 10px;
-
-        /* Der Schwebe-Trick: Wir heben die Leiste leicht an 
-           und geben ihr etwas Abstand zum tatsächlichen Displayboden */
-        margin-bottom: 30px; 
-        border-radius: 8px; /* Sieht optisch als schwebende "Pille" sogar cooler aus */
-        border: 1px solid #2f3542;
-    }
-
-    /* Zeile 1: Play-Button und der BPM-Slider */
-    .bottom-bar > .toolbar-group:first-of-type,
-    .bottom-bar > .bpm-slider-container {
-        width: 100%;
-        justify-content: space-between;
-    }
-
-    .bottom-bar > .bpm-slider-container {
-        margin-left: 0; /* Hebt das Floaten auf dem Handy auf */
-        width: 100%;
-        display: flex;
-        justify-content: flex-end; /* Schiebt Slider-Inhalte kompakt nach rechts */
-    }
-
-    /* Blendet den vertikalen Trennstrich auf dem Handy aus */
-    .toolbar-divider {
-        display: none;
-    }
-
-    /* Zeile 2: Die kompletten Zeichenwerkzeuge */
-    .bottom-bar > .toolbar-group:last-of-type {
-        width: 100%;
-        display: flex;
-        justify-content: space-between; /* Verteilt Stift, Radierer, Farbe, Slider und Mülleimer gleichmäßig */
-        gap: 4px;
-    }
-
-    /* Macht die Buttons auf dem Handy etwas kompakter */
-    .btn-tool, .btn-action, .btn-danger {
-        padding: 8px 10px;
-        font-size: 14px;
-    }
-
-    #bpm-slider {
-        width: 120px; /* Perfekte Breite für den Daumen auf dem Handy */
-    }
-
-    .btn-tool-action {
-        padding: 8px 8px;
-        font-size: 13px;
-    }
-}
-
 * {
     box-sizing: border-box;
     margin: 0;
@@ -79,14 +22,25 @@ body, html {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     background-color: var(--bg-dark);
     color: var(--text-light);
-    overflow: hidden; /* Verhindert, dass das gesamte Browserfenster scrollt */
+    overflow: hidden;
 }
+
+/* ============================================
+   LAYOUT & CONTAINERS
+   ============================================ */
 
 .app-container {
     display: flex;
     flex-direction: column;
-    height: 100vh; /* Zwingt die App, exakt die Höhe des Handys einzunehmen */
-    height: -webkit-fill-available; /* Verhindert Abschneiden durch die Adressleiste auf iOS/Android */
+    height: 100vh;
+    height: -webkit-fill-available;
+}
+
+.main-layout {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+    position: relative;
 }
 
 /* Header */
@@ -115,15 +69,7 @@ body, html {
     padding: 5px;
 }
 
-/* Layout */
-.main-layout {
-    display: flex;
-    flex: 1;
-    overflow: hidden; /* Verhindert Ausbrechen */
-    position: relative;
-}
-
-/* Einklappbare Sidebar */
+/* Sidebar */
 .sidebar {
     width: 280px;
     background-color: var(--bg-sidebar);
@@ -136,30 +82,6 @@ body, html {
     left: 0;
     z-index: 10;
     border-right: 1px solid #2f3542;
-}
-
-/* Auf großen Bildschirmen standardmäßig offen, schiebt Layout */
-@media (min-width: 1025px) {
-    .sidebar {
-        position: relative;
-        transform: translateX(0) !important;
-    }
-    .sidebar.closed {
-        transform: translateX(-100%) !important;
-        width: 0;
-        padding: 0;
-        border: none;
-    }
-}
-
-/* Auf Tablets/Phones als Overlay */
-@media (max-width: 1024px) {
-    .sidebar {
-        transform: translateX(-100%);
-    }
-    .sidebar.open {
-        transform: translateX(0);
-    }
 }
 
 .sidebar h2 {
@@ -191,34 +113,34 @@ body, html {
 
 .content-viewer {
     flex: 1;
-    overflow-y: auto; /* NUR dieser Bereich darf vertikal scrollen! */
+    overflow-y: auto;
     overflow-x: hidden;
     padding: 15px;
     background-color: var(--bg-dark);
-    -webkit-overflow-scrolling: touch; /* Sorgt für flüssiges Scrollen auf Touch-Geräten */
+    -webkit-overflow-scrolling: touch;
+    margin-bottom: 0;
 }
 
 .canvas-text-wrapper {
     position: relative;
     width: 100%;
     max-width: 850px;
-    margin: 0 auto; /* Zentriert die Box stattdessen so */
+    margin: 0 auto;
     background: var(--bg-paper);
     color: var(--text-dark);
     box-shadow: 0 4px 15px rgba(0,0,0,0.3);
     border-radius: 8px;
-    /* min-height entfernt, damit es rein durch den Text wächst */
-    will-change: transform; 
-    transition: transform 0.05s linear; 
+    will-change: transform;
+    transition: transform 0.05s linear;
 }
 
-/* WICHTIG: Erhält Tabs und Leerzeichen für exakte Akkordplatzierung */
+/* Song Content */
 .song-content {
     padding: 40px;
     font-family: "Courier New", Courier, monospace;
     font-size: 16px;
     line-height: 1.6;
-    white-space: pre-wrap; /* Magische Zeile für Chords */
+    white-space: pre-wrap;
     word-break: break-all;
 }
 
@@ -228,7 +150,6 @@ body, html {
     color: #1e222b;
 }
 
-/* Canvas liegt exakt deckungsgleich darüber */
 #annotation-canvas {
     position: absolute;
     top: 0;
@@ -237,198 +158,13 @@ body, html {
     height: 100%;
     pointer-events: auto;
     z-index: 2;
-    
-    /* ÄNDERUNG HIER: Erlaubt dem Browser, standardmäßige Multi-Touch 
-       Gesten (wie Pinch-to-Zoom oder Zwei-Finger-Gesten) zu registrieren */
-    touch-action: pan-x pan-y; 
-}
-/* Untere Toolbar */
-/* Basis-Design (Tablet und PC): Alles in einer Zeile */
-.bottom-bar {
-    height: 70px;
-    flex-shrink: 0;
-    background-color: var(--bg-sidebar);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-top: 1px solid #2f3542;
-    padding: 0 15px;
-    z-index: 20;
-    transition: height 0.2s ease;
+    touch-action: pan-x pan-y;
 }
 
-.toolbar-group {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
+/* ============================================
+   BOTTOM BAR (Collapsible Drawer)
+   ============================================ */
 
-.toolbar-divider {
-    width: 1px;
-    height: 30px;
-    background-color: #2f3542;
-}
-
-/* Buttons */
-button {
-    padding: 8px 14px;
-    border-radius: 6px;
-    border: none;
-    background: #2f3542;
-    color: var(--text-light);
-    cursor: pointer;
-    font-weight: 500;
-}
-
-button:hover { background: #3f4a5e; }
-.btn-action { background-color: #57606f; }
-.btn-tool.active { background-color: var(--primary); }
-.btn-danger { background-color: #ff4757; }
-#bpm-display { font-family: monospace; font-weight: bold; color: #eccc68; }
-
-
-/* Schiebt den gesamten Block nach rechts im Footer */
-.bpm-slider-container {
-    margin-left: auto; /* Das sorgt für das "nach rechts floaten" */
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    background: #2f3542;
-    padding: 6px 15px;
-    border-radius: 6px;
-    height: 42px;
-}
-
-/* Der Schieberegler selbst */
-#bpm-slider {
-    width: 150px;
-    accent-color: #ff4757; /* Passt sich deinem roten Theme an */
-    cursor: pointer;
-}
-
-#bpm-val-display {
-    font-family: monospace;
-    font-size: 18px;
-    font-weight: bold;
-    color: #eccc68; /* Dein Gelb */
-    min-width: 35px;
-    text-align: right;
-}
-
-.bpm-label {
-    font-size: 14px;
-    color: #a4b0be;
-}
-
-
-.btn-tool-action {
-    padding: 8px 12px;
-    border-radius: 6px;
-    border: none;
-    background: #4b5563; /* Etwas helleres Grau als Kontrast */
-    color: var(--text-light);
-    cursor: pointer;
-    font-weight: 500;
-    font-size: 14px;
-    transition: background 0.2s;
-}
-
-.btn-tool-action:hover {
-    background: #6b7280;
-}
-
-/* Die schwebende Regler-Pille (FAB) */
-.action-overlay-container {
-    position: fixed;
-    bottom: 60px;
-    right: 16px;
-    z-index: 100;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    pointer-events: auto; /* Gewährleistet, dass die Klicks durch das Canvas ankommen */
-}
-
-/* Das Gehäuse für den Speed-Slider */
-.action-overlay-container .bpm-slider-container {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: #15181f;
-    padding: 6px 12px;
-    border-radius: 20px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-    border: 1px solid #2f3542;
-    height: 36px;
-    box-sizing: border-box;
-}
-
-.action-overlay-container .bpm-slider-container input {
-    width: 85px;
-    accent-color: var(--primary);
-    margin: 0;
-    cursor: pointer; /* Nur der Slider-Knopf selbst bekommt den Pointer! */
-}
-
-.action-overlay-container #bpm-val-display {
-    font-weight: bold;
-    font-family: monospace;
-    color: #eccc68;
-    font-size: 13px;
-}
-
-.action-overlay-container .bpm-label {
-    color: #a4b0be;
-    font-size: 11px;
-    white-space: nowrap;
-}
-
-/* Der runde Play/Pause-Button */
-.action-overlay-container .play-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 42px;
-    height: 42px;
-    border-radius: 50%;
-    background-color: #2ed573;
-    border: none;
-    color: white;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-    cursor: pointer; /* Hier gehört der Pointer hin! */
-}
-
-.action-overlay-container .play-btn.active {
-    background-color: var(--primary) !important;
-}
-
-/* Der runde Pfeil-Button zum Einklappen */
-.action-overlay-container .btn-collapse {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 42px;
-    height: 42px;
-    border-radius: 50%;
-    background-color: #2f3542;
-    border: none;
-    color: white;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-    cursor: pointer;
-}
-
-.action-overlay-container .btn-collapse svg,
-.action-overlay-container .play-btn svg {
-    width: 22px;
-    height: 22px;
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 1.5;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-}
-
-/* DIE FESTE WERKZEUGLEISTE UNTEN */
 .bottom-bar {
     position: fixed;
     bottom: 0;
@@ -535,24 +271,290 @@ button:hover { background: #3f4a5e; }
     justify-content: center;
 }
 
-/* PC Standard-Zustand: Der Viewer darf bis ganz unten gleiten */
-.content-viewer {
-    margin-bottom: 0px !important;
-}
-
 #collapsible-drawer-bar.drawer-closed {
     transform: translateY(200%) !important;
 }
 
-/* SMARTPHONE MEDIA-QUERY (MAX-WIDTH: 600PX) */
-@media (max-width: 600px) {
+/* ============================================
+   ACTION OVERLAY (Floating Controls)
+   ============================================ */
+
+.action-overlay-container {
+    position: fixed;
+    bottom: 60px;
+    right: 16px;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    pointer-events: auto;
+}
+
+.action-overlay-container .bpm-slider-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #15181f;
+    padding: 6px 12px;
+    border-radius: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    border: 1px solid #2f3542;
+    height: 36px;
+    box-sizing: border-box;
+}
+
+.action-overlay-container .bpm-slider-container input {
+    width: 85px;
+    accent-color: var(--primary);
+    margin: 0;
+    cursor: pointer;
+}
+
+.action-overlay-container #bpm-val-display {
+    font-weight: bold;
+    font-family: monospace;
+    color: #eccc68;
+    font-size: 13px;
+}
+
+.action-overlay-container .bpm-label {
+    color: #a4b0be;
+    font-size: 11px;
+    white-space: nowrap;
+}
+
+.action-overlay-container .play-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background-color: #2ed573;
+    border: none;
+    color: white;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    cursor: pointer;
+}
+
+.action-overlay-container .play-btn.active {
+    background-color: var(--primary) !important;
+}
+
+.action-overlay-container .btn-collapse {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background-color: #2f3542;
+    border: none;
+    color: white;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    cursor: pointer;
+}
+
+.action-overlay-container .btn-collapse svg,
+.action-overlay-container .play-btn svg {
+    width: 22px;
+    height: 22px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+/* ============================================
+   BUTTONS (Base Styles)
+   ============================================ */
+
+button {
+    padding: 8px 14px;
+    border-radius: 6px;
+    border: none;
+    background: #2f3542;
+    color: var(--text-light);
+    cursor: pointer;
+    font-weight: 500;
+}
+
+button:hover {
+    background: #3f4a5e;
+}
+
+.btn-action {
+    background-color: #57606f;
+}
+
+.btn-tool.active {
+    background-color: var(--primary);
+}
+
+.btn-danger {
+    background-color: #ff4757;
+}
+
+#bpm-display {
+    font-family: monospace;
+    font-weight: bold;
+    color: #eccc68;
+}
+
+.btn-tool-action {
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: none;
+    background: #4b5563;
+    color: var(--text-light);
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 14px;
+    transition: background 0.2s;
+}
+
+.btn-tool-action:hover {
+    background: #6b7280;
+}
+
+/* ============================================
+   CHORD RENDERING
+   ============================================ */
+
+.song-content .row {
+    display: block !important;
+    clear: both !important;
+    white-space: nowrap !important;
+}
+
+.song-content .column {
+    display: inline-flex !important;
+    flex-direction: column !important;
+    vertical-align: bottom !important;
+    min-width: 1ch !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.song-content .chord {
+    font-weight: bold !important;
+    color: var(--primary) !important;
+    display: block !important;
+    height: 1.3em !important;
+    margin-bottom: 2px !important;
+    white-space: nowrap !important;
+    padding-right: 4px !important;
+}
+
+.song-content .lyrics {
+    display: block !important;
+    min-height: 1em !important;
+    color: var(--text-dark) !important;
+    white-space: pre !important;
+}
+
+/* ============================================
+   SIDEBAR RESPONSIVENESS
+   ============================================ */
+
+/* Desktop: Sidebar open by default */
+@media (min-width: 1025px) {
+    .sidebar {
+        position: relative;
+        transform: translateX(0) !important;
+    }
+    .sidebar.closed {
+        transform: translateX(-100%) !important;
+        width: 0;
+        padding: 0;
+        border: none;
+    }
+}
+
+/* Tablet/Mobile: Sidebar as overlay */
+@media (max-width: 1024px) {
+    .sidebar {
+        transform: translateX(-100%);
+    }
+    .sidebar.open {
+        transform: translateX(0);
+    }
+}
+
+/* ============================================
+   MOBILE LAYOUT (Smartphones)
+   ============================================ */
+
+@media (max-width: 650px) {
     .action-overlay-container {
         position: fixed !important;
-        bottom: 16px !important; 
+        bottom: 16px !important;
         right: 12px !important;
         left: auto !important;
         transition: bottom 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
         z-index: 100 !important;
+    }
+
+    .bottom-bar {
+        height: auto;
+        flex-direction: column;
+        gap: 12px;
+        padding: 10px 10px;
+        margin-bottom: 30px;
+        border-radius: 8px;
+        border: 1px solid #2f3542;
+        min-height: auto !important;
+    }
+
+    .bottom-bar > .toolbar-group:first-of-type,
+    .bottom-bar > .bpm-slider-container {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .bottom-bar > .bpm-slider-container {
+        margin-left: 0;
+        width: 100%;
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    .toolbar-divider {
+        display: none;
+    }
+
+    .bottom-bar > .toolbar-group:last-of-type {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        gap: 4px;
+    }
+
+    .btn-tool, .btn-action, .btn-danger {
+        padding: 8px 10px;
+        font-size: 14px;
+    }
+
+    .btn-tool-action {
+        padding: 8px 8px;
+        font-size: 13px;
+    }
+
+    #bpm-slider {
+        width: 120px;
+    }
+
+    .content-viewer {
+        margin-bottom: 0px !important;
+    }
+}
+
+/* Smartphone-specific adjustments */
+@media (max-width: 600px) {
+    .action-overlay-container {
+        bottom: 16px !important;
+        right: 12px !important;
     }
 
     .bottom-bar {
@@ -565,47 +567,4 @@ button:hover { background: #3f4a5e; }
     .content-viewer {
         margin-bottom: 0px !important;
     }
-}
-
-
-/* ========================================================
-   AKKORDBLATT-RENDERING: FLEX-SÄULEN & TABSTOP-FIX (FINAL)
-   ======================================================== */
-
-/* Zwingt jede Songzeile, sich starr horizontal als Band auszubreiten */
-.song-content .row {
-    display: block !important;
-    clear: both !important;
-    white-space: nowrap !important; /* Verhindert das willkürliche Umbrechen mitten im Wort */
-}
-
-/* Hält den Akkord und die Textsilbe als unzertrennliche vertikale Einheit zusammen.
-   Der magische Kniff: min-width: 1ch zwingt leere Spalten am Zeilenanfang, 
-   physikalisch exakt die Breite von 4 echten Leerzeichen einzunehmen! */
-.song-content .column {
-    display: inline-flex !important;
-    flex-direction: column !important;
-    vertical-align: bottom !important;
-    min-width: 1ch !important; /* Reißt die 4 Leerzeichen am Anfang millimetergenau auf */
-    margin: 0 !important;
-    padding: 0 !important;
-}
-
-/* Die Akkorde stehen fett, rot und isoliert über den Buchstaben */
-.song-content .chord {
-    font-weight: bold !important;
-    color: var(--primary) !important; /* Nutzt dein originales Rot */
-    display: block !important;
-    height: 1.3em !important;
-    margin-bottom: 2px !important;
-    white-space: nowrap !important;
-    padding-right: 4px !important; /* Verhindert das Ineinanderkrachen am Zeilenende (z.B. bei D# Fsus) */
-}
-
-/* Schützt die Leerzeichen und Silben vor dem horizontalen Kollabieren */
-.song-content .lyrics {
-    display: block !important;
-    min-height: 1em !important;
-    color: var(--text-dark) !important;
-    white-space: pre !important; /* Schützt alle Leerzeichen und Tabs innerhalb des Dokuments */
 }
