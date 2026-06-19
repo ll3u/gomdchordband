@@ -107,6 +107,14 @@ async function loadSongs() {
 }
 
 async function selectSong(id) {
+    //reset zoom
+    if (typeof currentScale !== 'undefined') currentScale = 1.0;
+    //scroll up
+    const scrollContainer = document.getElementById('scroll-container');
+    if (scrollContainer) {
+        scrollContainer.scrollTop = 0;
+    }
+
     currentSongId = id;
     stopAutoscroll();
 
@@ -849,3 +857,15 @@ if (btnCollapse && drawerBar && overlayContainer && arrowPath && contentViewer) 
         if (typeof resizeCanvas === "function") resizeCanvas();
     });
 }
+
+document.getElementById('btn-fullscreen').addEventListener('click', () => {
+    // Sicherstellen, dass das Dokument nicht bereits im Vollbild ist
+    if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen()
+            .catch(err => {
+                console.error(`Vollbild verweigert: ${err.message}`);
+            });
+    } else {
+        document.exitFullscreen();
+    }
+});
