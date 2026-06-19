@@ -454,32 +454,40 @@ button:hover {
     display: block !important;
     clear: both !important;
     white-space: nowrap !important;
+    line-height: 1.4;  /* Base line height for lyrics */
+    margin-bottom: 0.5em !important;
 }
 
 .song-content .column {
-    display: inline-flex !important;
+    display: inline-block !important;
     flex-direction: column !important;
-    vertical-align: bottom !important;
+    vertical-align: top !important;
     min-width: 1ch !important;
-    margin: 0 !important;
+    margin: 0 0.1em !important;
     padding: 0 !important;
+    line-height: 1.4;  /* Match row line height */
 }
 
 .song-content .chord {
     font-weight: bold !important;
     color: var(--primary) !important;
     display: block !important;
-    height: 1.3em !important;
-    margin-bottom: 2px !important;
+    height: auto !important;
+    min-height: 1.2em !important;
+    line-height: 1.1 !important;
+    margin-bottom: 0.2em !important;
     white-space: nowrap !important;
-    padding-right: 4px !important;
+    padding: 0 0.2em !important;
+    font-size: 1em !important;  /* Slightly smaller than lyrics */
 }
 
 .song-content .lyrics {
     display: block !important;
-    min-height: 1em !important;
+    min-height: 1.2em !important;
     color: var(--text-dark) !important;
     white-space: pre !important;
+    line-height: 1.4;  /* Match row line height */
+    padding-top: 0.1em !important;
 }
 
 /* ============================================
@@ -637,4 +645,8 @@ button:hover {
 .song-actions button:hover {
     background: #2f3542;
     opacity: 1;
+}
+
+#song-render {
+    padding: 1.0em 1.2em;
 }
