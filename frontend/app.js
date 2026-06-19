@@ -66,6 +66,7 @@ async function loadSongs() {
         // ========================================================
         // Wir triggern im Hintergrund ein unsichtbares Laden aller Songs.
         // Der Service Worker fängt diese Anfragen ab und speichert sie ab.
+
         if (navigator.onLine) {
             console.log(`Starte automatischen Offline-Sync für ${songs.length} Songs...`);
             
@@ -179,11 +180,16 @@ function renderChordSheet() {
 
         const songBodyText = songBodyLines.join('\n');
 
-        // 1. Wir nutzen wieder den stabilen UltimateGuitarParser für das perfekte Layout
-        const parser = new ChordSheetJS.UltimateGuitarParser();
-        const song = parser.parse(songBodyText);
-        const formatter = new ChordSheetJS.HtmlDivFormatter();
-        const mainBodyHtml = formatter.format(song);
+        const ugParser = new ChordSheetJS.UltimateGuitarParser();
+        const ugSong = ugParser.parse(songBodyText);
+        const cpFormatter = new ChordSheetJS.ChordProFormatter();
+        const cpBody = cpFormatter.format(ugSong);
+
+        const cpParser = new ChordSheetJS.ChordProParser();
+        const cpSong = cpParser.parse(cpBody);
+
+        const divFormatter = new ChordSheetJS.HtmlDivFormatter();
+        const mainBodyHtml = divFormatter.format(cpSong);
 
         // HTML in das Dokument schreiben
         document.getElementById('song-render').innerHTML = '<div class="ug-header-block">' + headerHtml + '</div><div class="ug-song-body">' + mainBodyHtml + '</div>';
