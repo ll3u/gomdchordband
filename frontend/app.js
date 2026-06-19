@@ -73,7 +73,10 @@ async function loadSongs() {
             li.textContent = song.title;
             li.addEventListener('click', () => {
                 selectSong(song.id);
-                if (window.innerWidth <= 1024) sidebar.classList.remove('open');
+                if (window.innerWidth <= 1024) {
+                    sidebar.classList.remove('open');
+                    updateTopBarPointerEvents();
+                }
             });
             list.appendChild(li);
         });
