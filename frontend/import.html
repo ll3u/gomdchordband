@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Song Inhalt Import</title>
+    <style>
+        body { 
+            font-family: sans-serif; 
+            background: #15181f; 
+            color: white; 
+            padding: 40px; 
+        }
+        .container { 
+            max-width: 600px; 
+            margin: 0 auto; 
+            background: #1e222b; 
+            padding: 20px; 
+            border-radius: 8px; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3); 
+            border: 1px solid #2f3542;
+        }
+        h2 { 
+            margin-top: 0; 
+            color: #ffffff; 
+        }
+        label {
+            display: block;
+            margin-top: 15px;
+            color: #a4b0be;
+            font-size: 14px;
+        }
+        input[type="text"] { 
+            width: 100%; 
+            padding: 10px; 
+            margin: 8px 0; 
+            background: #2f3542; 
+            border: 1px solid #4f5d73; 
+            color: white; 
+            border-radius: 4px; 
+            box-sizing: border-box; 
+        }
+        textarea {
+            width: 100%;
+            height: 300px;
+            padding: 10px;
+            margin: 8px 0;
+            background: #2f3542;
+            border: 1px solid #4f5d73;
+            color: white;
+            font-family: 'Roboto Mono', monospace;
+            font-size: 14px;
+            border-radius: 4px;
+            box-sizing: border-box;
+            resize: vertical;
+        }
+        button { 
+            background: #2ed573; 
+            border: none; 
+            padding: 12px 20px; 
+            color: white; 
+            border-radius: 4px; 
+            cursor: pointer; 
+            font-weight: bold; 
+            width: 100%;
+            margin-top: 15px;
+        }
+        button:hover {
+            background: #26af5f;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Song Inhalt manuell importieren</h2>
+        <form method="POST" action="/api/songs/import">
+            <label>Song-Titel oder Dateiname (z.B. amazing_grace.md):</label>
+            <input type="text" name="title" placeholder="amazing_grace.md" required>
+
+            <label>Song-Inhalt (Akkorde & Text hier einfügen):</label>
+            <textarea name="content" placeholder="# Song Titel&#10;&#10;[Verse 1]&#10;G           C&#10;Amazing Grace..." required></textarea>
+            
+            <label>8-Stelliger Band-Guard Code (aus Aegis):</label>
+            <input type="text" name="band_guard_code" placeholder="12345678" pattern="[0-9]{8}" inputmode="numeric" maxlength="8" autocomplete="off" required>
+            
+            <button type="submit">Song im System speichern</button>
+        </form>
+    </div>
+</body>
+</html>

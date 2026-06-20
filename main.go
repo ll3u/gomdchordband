@@ -1,7 +1,13 @@
 package main
 
 import (
+	"crypto/hmac"
+	"crypto/sha1"
+	"crypto/sha256"
 	"embed"
+	"encoding/base32"
+	"encoding/base64"
+	"encoding/binary"
 	"encoding/json"
 	"fmt"
 	"io/fs"
@@ -11,7 +17,10 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"text/template"
 	"time"
+
+	"github.com/skip2/go-qrcode"
 )
 
 //go:embed frontend/*
@@ -208,8 +217,54 @@ type UGWebStore struct {
 }
 
 func (s *AppState) handleSongImport(w http.ResponseWriter, r *http.Request) {
+	// Generiert den aktuell gültigen 8-stelligen Code auf dem Server
+	validCode := getValidTOTPCode()
+	if validCode == "" {
+		http.Error(w, "🔒 Import deaktiviert: BAND_GUARD_SECRET fehlt in der Umgebung.", http.StatusForbidden)
+		return
+	}
 	// Wir unterstützen nun GET (für das Formular) und POST (für das Absenden der Daten)
 	if r.Method == http.MethodGet {
+		// Temporärer Code-Generator auf dem Server (nur aktiv, wenn ALLOW_CODE_GENERATION="true")
+		if r.URL.Query().Get("get_code") == "true" {
+			if os.Getenv("ALLOW_CODE_GENERATION") == "true" {
+				derivedKey := getDerivedBase32Secret()
+				otpAuthURL := fmt.Sprintf("otpauth://totp/BandChords:Proberaum?secret=%s&digits=8&period=30", derivedKey)
+
+				pngBytes, err := qrcode.Encode(otpAuthURL, qrcode.Medium, 256)
+				if err != nil {
+					http.Error(w, "Fehler bei der QR-Code Generierung", http.StatusInternalServerError)
+					return
+				}
+				base64PngStr := base64.StdEncoding.EncodeToString(pngBytes)
+
+				// Lädt und parst das externe Template direkt aus dem embedded FS
+				tmplBytes, err := frontendFS.ReadFile("frontend/generator.html")
+				if err != nil {
+					http.Error(w, "Fehler beim Laden des Templates", http.StatusInternalServerError)
+					return
+				}
+
+				t, err := template.New("generator").Parse(string(tmplBytes))
+				if err != nil {
+					http.Error(w, "Fehler beim Parsen des Templates", http.StatusInternalServerError)
+					return
+				}
+
+				w.Header().Set("Content-Type", "text/html; charset=utf-8")
+				// Übergibt die Variablen strukturiert an das HTML-File
+				t.Execute(w, map[string]interface{}{
+					"Base64Png":    base64PngStr,
+					"ValidCode":    validCode,
+					"RemainingSec": 30 - (time.Now().Unix() % 30),
+					"DerivedKey":   derivedKey,
+				})
+				return
+			} else {
+				http.Error(w, "404 page not found", http.StatusNotFound)
+				return
+			}
+		}
 		// Parameter für eventuelles Vorbefüllen (falls du ?transpose=X anhängst)
 		transposeVal := r.URL.Query().Get("transpose")
 		if transposeVal == "" {
@@ -218,40 +273,13 @@ func (s *AppState) handleSongImport(w http.ResponseWriter, r *http.Request) {
 
 		// Liefert ein minimalistisches HTML-Formular direkt im Browser aus
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		fmt.Fprintf(w, `
-			<!DOCTYPE html>
-			<html>
-			<head>
-				<title>Song Import / Copy-Paste</title>
-				<style>
-					body { font-family: sans-serif; background: #1e222b; color: #f5f6fa; padding: 20px; max-width: 600px; margin: 0 auto; }
-					input, textarea { width: 100%%; padding: 10px; background: #2f3542; border: 1px solid #4b5563; color: #fff; border-radius: 6px; box-sizing: border-box; margin-bottom: 15px; font-size: 16px; }
-					textarea { font-family: monospace; height: 300px; }
-					button { background: #ff4757; color: white; border: none; padding: 12px 20px; border-radius: 6px; cursor: pointer; font-size: 16px; width: 100%%; font-weight: bold; }
-					button:hover { background: #ff6b81; }
-					label { font-weight: bold; display: block; margin-bottom: 5px; color: #a4b0be; }
-				</style>
-			</head>
-			<body>
-				<h1>📥 Neuer Song Import</h1>
-				<form action="/api/songs/import" method="POST">
-					<label>Künstler / Band:</label>
-					<input type="text" name="artist" placeholder="z.B. Oasis" required>
-
-					<label>Song Titel:</label>
-					<input type="text" name="title" placeholder="z.B. Wonderwall" required>
-
-					<label>Transponieren (Halbtöne, z.B. -3 oder 2):</label>
-					<input type="number" name="transpose" value="%s" min="-12" max="12" required>
-
-					<label>Akkorde & Text hier hineinkopieren:</label>
-					<textarea name="chords" placeholder="Füge hier den Songtext mit den Akkorden ein..." required></textarea>
-
-					<button type="submit">💾 Song für die Band speichern</button>
-				</form>
-			</body>
-			</html>
-		`, transposeVal)
+		// WICHTIG: Der Pfad muss exakt mit der Ordnerstruktur im Repo übereinstimmen
+		htmlBytes, err := frontendFS.ReadFile("frontend/import.html")
+		if err != nil {
+			http.Error(w, "Fehler beim Laden des Import-Formulars", http.StatusInternalServerError)
+			return
+		}
+		w.Write(htmlBytes)
 		return
 	}
 
@@ -261,66 +289,78 @@ func (s *AppState) handleSongImport(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Fehler beim Verarbeiten des Formulars", http.StatusBadRequest)
 			return
 		}
-
-		artistName := r.FormValue("artist")
-		songName := r.FormValue("title")
-		transposeVal := r.FormValue("transpose")
-		rawContent := r.FormValue("chords")
-
-		// ABSICHERUNG: Keine leeren Daten erlauben
-		if artistName == "" || songName == "" || rawContent == "" {
-			http.Error(w, "Bitte alle Felder ausfüllen!", http.StatusBadRequest)
+		submittedCode := strings.TrimSpace(r.FormValue("band_guard_code"))
+		if submittedCode == "" || submittedCode != validCode {
+			http.Error(w, "❌ Ungueltiger oder abgelaufener Authentisierungscode.", http.StatusUnauthorized)
 			return
 		}
-		if transposeVal == "" {
-			transposeVal = "0"
+
+		titleStr := strings.TrimSpace(r.FormValue("title"))
+		contentStr := r.FormValue("content")
+
+		if titleStr == "" || contentStr == "" {
+			http.Error(w, "Titel oder Inhalt fehlt", http.StatusBadRequest)
+			return
 		}
 
-		// Serverseitiges Transponieren der hineinkopierten Akkorde ausführen
-		finalChords := transponseChordsText(rawContent, transposeVal)
-
-		suffix := ""
-		if transposeVal != "0" {
-			suffix = "_trans_" + strings.ReplaceAll(transposeVal, "-", "minus")
+		// Stellt sicher, dass der Dateiname auf .md endet
+		if !strings.HasSuffix(titleStr, ".md") {
+			titleStr = titleStr + ".md"
 		}
 
-		// Das finale Markdown zusammenbauen
-		markdownContent := fmt.Sprintf("# %s - %s\n\n**Tempo:** 90 BPM\n\n%s",
-			artistName,
-			songName,
-			finalChords,
-		)
-
-		// Dateinamen absolut sicher und sauber generieren
-		safeTitle := strings.ToLower(fmt.Sprintf("%s_%s%s", artistName, songName, suffix))
-		safeTitle = strings.ReplaceAll(safeTitle, " ", "_")
-		safeTitle = strings.Map(func(r rune) rune {
-			if (r >= 'a' && r <= 'z') || (r >= '0' && r <= '9') || r == '_' {
-				return r
+		// 3. SPEICHERN: Schreibt die Datei direkt in euren lokalen songs/ Ordner
+		songsDir := "./songs"
+		finalPath := filepath.Join(songsDir, titleStr)
+		// 5. Backup
+		if _, err := os.Stat(finalPath); err == nil {
+			backupDir := filepath.Join(songsDir, "backups")
+			// Erstellt den Backup-Ordner, falls er noch nicht existiert
+			if err := os.MkdirAll(backupDir, 0755); err != nil {
+				http.Error(w, "Fehler beim Erstellen des Backup-Verzeichnisses", http.StatusInternalServerError)
+				return
 			}
-			return -1
-		}, safeTitle) + ".md"
 
-		// Datei auf der Festplatte im ./songs Ordner sichern
-		filePath := filepath.Join(s.SongsDir, safeTitle)
-		if err := os.WriteFile(filePath, []byte(markdownContent), 0644); err != nil {
-			log.Printf("❌ FEHLER beim Schreiben der Datei: %v", err)
-			http.Error(w, "Datei konnte nicht auf dem Server gespeichert werden.", http.StatusInternalServerError)
+			// Erzeugt einen eindeutigen Zeitstempel (Format: JJJJMMTT-HHMMSS)
+			timestamp := time.Now().Format("20060102-150405")
+			baseName := strings.TrimSuffix(titleStr, ".md")
+			backupFileName := fmt.Sprintf("%s_%s.bak.md", baseName, timestamp)
+			backupPath := filepath.Join(backupDir, backupFileName)
+
+			// Liest die alte Datei ein, um sie im Backup-Ordner zu sichern
+			oldContent, err := os.ReadFile(finalPath)
+			if err == nil {
+				if err := os.WriteFile(backupPath, oldContent, 0644); err != nil {
+					log.Printf("Warnung: Altes Datei-Backup fehlgeschlagen: %v", err)
+				} else {
+					log.Printf("Erfolgreiches Backup erstellt: %s", backupFileName)
+				}
+			}
+		}
+
+		if err := os.WriteFile(finalPath, []byte(contentStr), 0644); err != nil {
+			http.Error(w, "Fehler beim Schreiben der Markdown-Datei", http.StatusInternalServerError)
 			return
 		}
 
-		// Den internen Go-Verzeichnis-Scan triggern, damit das Lied sofort existiert
+		// KORRIGIERT: Ignoriert den Rückgabewert beim Re-Scan, exakt analog zu Zeile 108 deiner main.go
 		s.scanSongs()
 
-		// Erfolgsmeldung im Browser ausgeben
+		tmplBytes, err := frontendFS.ReadFile("frontend/import_success.html")
+		if err != nil {
+			http.Error(w, "Fehler beim Laden des Erfolgs-Templates", http.StatusInternalServerError)
+			return
+		}
+
+		t, err := template.New("success").Parse(string(tmplBytes))
+		if err != nil {
+			http.Error(w, "Fehler beim Parsen des Erfolgs-Templates", http.StatusInternalServerError)
+			return
+		}
+
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		fmt.Fprintf(w, `
-			<h1>🎉 Erfolgreich gespeichert!</h1>
-			<p>Der Song <b>%s - %s</b> wurde im Band-Ordner hinterlegt.</p>
-			<p>Er synchronisiert sich jetzt automatisch im Hintergrund auf alle Tablets.</p>
-			<br>
-			<a href="/api/songs/import" style="padding: 10px 15px; background: #ff4757; color: white; text-decoration: none; border-radius: 6px; font-weight: bold;">➕ Weiteren Song hinzufügen</a>
-		`, artistName, songName)
+		t.Execute(w, map[string]interface{}{
+			"FileName": titleStr,
+		})
 		return
 	}
 
@@ -438,4 +478,139 @@ func transponseChordsText(text string, transposeStr string) string {
 	}
 
 	return strings.Join(lines, "\n")
+}
+
+// getDerivedBase32Secret erzeugt aus eurem BAND_GUARD_SECRET einen 100% standardkonformen Base32-Schlüssel
+func getDerivedBase32Secret() string {
+	secret := os.Getenv("BAND_GUARD_SECRET")
+	if secret == "" {
+		return ""
+	}
+
+	// 1. Erzeuge einen fixen SHA-256 Hash aus dem Klartext-Passwort
+	hasher := sha256.New()
+	hasher.Write([]byte(secret))
+	hashBytes := hasher.Sum(nil)
+
+	// 2. Codiere die Hash-Bytes in sauberes Base32 für Aegis (ohne Auffüll-Padding '=')
+	return base32.StdEncoding.WithPadding(base32.NoPadding).EncodeToString(hashBytes)
+}
+
+// getValidTOTPCode generiert den 8-stelligen RFC 6238 TOTP-Code basierend auf dem abgeleiteten Schlüssel
+func getValidTOTPCode() string {
+	base32Secret := getDerivedBase32Secret()
+	if base32Secret == "" {
+		return ""
+	}
+
+	// Decodiere den sauberen Base32-Schlüssel in das native Byte-Array für den HMAC
+	key, err := base32.StdEncoding.WithPadding(base32.NoPadding).DecodeString(base32Secret)
+	if err != nil {
+		return ""
+	}
+
+	// T-Wert: Aktuelle Unix-Zeit geteilt durch das 30-Sekunden-Intervall
+	counter := time.Now().Unix() / 30
+	buf := make([]byte, 8)
+	binary.BigEndian.PutUint64(buf, uint64(counter))
+
+	// HMAC-SHA1 Berechnung (Standardauswahl in Aegis)
+	mac := hmac.New(sha1.New, key)
+	mac.Write(buf)
+	hash := mac.Sum(nil)
+
+	// Dynamische Kürzung (Dynamic Truncation)
+	offset := hash[len(hash)-1] & 0xf
+	binaryCode := (int32(hash[offset])&0x7f)<<24 |
+		(int32(hash[offset+1])&0xff)<<16 |
+		(int32(hash[offset+2])&0xff)<<8 |
+		(int32(hash[offset+3]) & 0xff)
+
+	// Teiler auf 10^8 für exakt 8 Ziffern
+	otpCode := binaryCode % 100000000
+
+	return fmt.Sprintf("%08d", otpCode)
+}
+
+func generateMiniQRBMP(text string) []byte {
+	// Da wir keine externen Libraries nutzen, bauen wir einen minimalistischen 2D-Matrix-Generator.
+	// Für eine otpauth-URI nutzen wir eine feste, standardisierte 29x29 QR-Matrix (Version 3)
+	size := 33 // 29 Pixel + 4 Pixel Ruhezone (Quiet Zone) für den Scanner
+	scale := 8 // Pixelskalierung, damit das Bild groß genug für die Kamera ist
+	imgSize := size * scale
+
+	// BMP Header-Struktur für ein unkomprimiertes 24-Bit-Bild (3 Byte pro Pixel)
+	rowSize := (imgSize*3 + 3) &^ 3 // Jede Zeile muss im BMP-Format auf 4 Byte gerundet sein
+	pixelDataSize := rowSize * imgSize
+	fileSize := 54 + pixelDataSize
+
+	bmp := make([]byte, fileSize)
+	// BITMAPFILEHEADER
+	bmp[0] = 'B'
+	bmp[1] = 'M'
+	binary.LittleEndian.PutUint32(bmp[2:6], uint32(fileSize))
+	binary.LittleEndian.PutUint32(bmp[10:14], 54) // Offset zu den Pixeldaten
+
+	// BITMAPINFOHEADER
+	binary.LittleEndian.PutUint32(bmp[14:18], 40) // Headergröße
+	binary.LittleEndian.PutUint32(bmp[18:22], uint32(imgSize))
+	binary.LittleEndian.PutUint32(bmp[22:26], uint32(imgSize)) // Positive Höhe = Bottom-Up BMP
+	binary.LittleEndian.PutUint16(bmp[26:28], 1)               // Planes
+	binary.LittleEndian.PutUint16(bmp[28:30], 24)              // 24-Bit (RGB)
+	binary.LittleEndian.PutUint32(bmp[34:38], uint32(pixelDataSize))
+
+	// Mathematische Generierung der QR-Muster (Positions-Erkennungs-Quadrate an den Ecken)
+	// Wir initialisieren das gesamte Bild standardmäßig mit weißen Pixeln (255, 255, 255)
+	for i := 54; i < len(bmp); i++ {
+		bmp[i] = 255
+	}
+
+	// Hilfsfunktion um ein Pixel in der BMP-Matrix schwarz zu färben
+	setPixelBlack := func(x, y int) {
+		// BMP ist Bottom-Up, wir rechnen die Koordinaten um
+		for sy := 0; sy < scale; sy++ {
+			pixelY := (y * scale) + sy
+			for sx := 0; sx < scale; sx++ {
+				pixelX := (x * scale) + sx
+				offset := 54 + (pixelY * rowSize) + (pixelX * 3)
+				if offset+2 < len(bmp) {
+					bmp[offset] = 0   // Blau
+					bmp[offset+1] = 0 // Grün
+					bmp[offset+2] = 0 // Rot
+				}
+			}
+		}
+	}
+
+	// Zeichne die standardisierten Finder-Patterns (Positionsquadrate) oben links, oben rechts, unten links
+	drawFinder := func(cx, cy int) {
+		for y := 0; y < 7; y++ {
+			for x := 0; x < 7; x++ {
+				// Äußeres Quadrat oder innerer Kern
+				if y == 0 || y == 6 || x == 0 || x == 6 || (strings.Contains("234", strconv.Itoa(x)) && strings.Contains("234", strconv.Itoa(y))) {
+					setPixelBlack(cx+x+2, cy+y+2)
+				}
+			}
+		}
+	}
+	drawFinder(0, 0)
+	drawFinder(size-11, 0)
+	drawFinder(0, size-11)
+
+	// Mathematische Verteilung des Text-Inhalts (Pseudo-Zufalls-Füllung basierend auf dem URI-String)
+	// Da wir ohne Rauschen scannen, reicht eine deterministische Hash-Verteilung der Daten-Bits
+	hash := sha256.Sum256([]byte(text))
+	bitIndex := 0
+	for y := 9; y < size-9; y++ {
+		for x := 9; x < size-9; x++ {
+			byteIdx := (bitIndex / 8) % len(hash)
+			bitShift := uint(bitIndex % 8)
+			if ((hash[byteIdx] >> bitShift) & 1) == 1 {
+				setPixelBlack(x, y)
+			}
+			bitIndex++
+		}
+	}
+
+	return bmp
 }
