@@ -34,6 +34,9 @@ const btnAutoscroll = document.getElementById('btn-autoscroll');
 const bpmSlider = document.getElementById('bpm-slider');
 const bpmValDisplay = document.getElementById('bpm-val-display');
 const wrapper = document.getElementById('wrapper');
+// Font size state
+const fontSizeSlider = document.getElementById('font-size-slider');
+const fontSizeDisplay = document.getElementById('font-size-display');
 
 // 1. SIDEBAR TOGGLE (Für Tablets)
 sidebarToggle.addEventListener('click', () => {
@@ -167,6 +170,16 @@ async function selectSong(id) {
         transDisplay.textContent = (currentTransposeOffset >= 0 ? "+" : "") + currentTransposeOffset;
     }
 
+    // Load saved font size for this song
+    const savedFontSize = localStorage.getItem(`fontSize_${id}`);
+    if (savedFontSize && fontSizeSlider) {
+        fontSizeSlider.value = savedFontSize;
+        fontSizeDisplay.textContent = savedFontSize;
+    } else if (fontSizeSlider) {
+        fontSizeSlider.value = 16;
+        fontSizeDisplay.textContent = '16';
+    }
+    updateFontSize(); 
     // Das Zeichnen des Akkordblatts anwerfen
     renderChordSheet();
 }
@@ -242,6 +255,24 @@ function renderChordSheet() {
     setTimeout(() => {
         if (typeof resizeCanvas === "function") resizeCanvas();
         if (typeof loadCanvasData === "function") loadCanvasData();
+    }, 50);
+}
+
+function updateFontSize() {
+    const size = parseInt(fontSizeSlider.value, 10);
+    const songRender = document.getElementById('song-render');
+    if (songRender) {
+        songRender.style.fontSize = `${size}px`;
+    }
+    if (fontSizeDisplay) {
+        fontSizeDisplay.textContent = size;
+    }
+    if (currentSongId) {
+        localStorage.setItem(`fontSize_${currentSongId}`, size);
+    }
+    // Resize canvas to match new content height
+    setTimeout(() => {
+        if (typeof resizeCanvas === "function") resizeCanvas();
     }, 50);
 }
 
@@ -789,12 +820,16 @@ window.onload = () => {
 
     // Handle page visibility changes
     document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible' && document.fullscreenElement) {
-        requestWakeLock();
-    } else {
-        releaseWakeLock();
-    }
+        if (document.visibilityState === 'visible' && document.fullscreenElement) {
+            requestWakeLock();
+        } else {
+            releaseWakeLock();
+        }
     });
+
+    if (fontSizeSlider) {
+        fontSizeSlider.addEventListener('input', updateFontSize);
+    }
 };
 
 // Reagiert sofort, wenn man den Schieberegler bewegt

@@ -150,9 +150,9 @@ body, html {
 
 /* Song Content */
 .song-content {
-    padding: 40px;
+    padding: 1.0em 1.2em;
     font-family: "Courier New", Courier, monospace;
-    font-size: 16px;
+    font-size: 18px;
     line-height: 1.6;
     white-space: pre-wrap;
     word-break: break-all;
@@ -355,8 +355,8 @@ body, html {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 42px;
-    height: 42px;
+    width: 48px;
+    height: 48px;
     border-radius: 50%;
     background-color: #2ed573;
     border: none;
@@ -547,6 +547,7 @@ button:hover {
         border-radius: 8px;
         border: 1px solid #2f3542;
         min-height: auto !important;
+        z-index: 105 !important;  /* Higher than action-overlay-container (100) */
     }
 
     .bottom-bar > .toolbar-group:first-of-type,
@@ -647,6 +648,60 @@ button:hover {
     opacity: 1;
 }
 
-#song-render {
-    padding: 1.0em 1.2em;
+/* Font size slider - Mobile Optimized */
+.bottom-bar .font-slider-container {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: 15px;
+}
+
+.bottom-bar .font-slider-container input {
+    width: 120px;
+    height: 6px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: #2f3542;
+    border-radius: 3px;
+    outline: none;
+    cursor: pointer;
+    touch-action: manipulation;
+    margin: 0;
+    pointer-events: auto;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.bottom-bar .font-slider-container input::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 22px;
+    height: 22px;
+    background: var(--primary);
+    border-radius: 50%;
+    border: 2px solid white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    touch-action: manipulation;
+}
+
+.bottom-bar .font-slider-container input::-moz-range-thumb {
+    width: 22px;
+    height: 22px;
+    background: var(--primary);
+    border-radius: 50%;
+    border: 2px solid white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
+
+.bottom-bar #font-size-display {
+    font-weight: bold;
+    font-family: monospace;
+    color: white;
+    min-width: 24px;
+    text-align: center;
+}
+
+.bottom-bar .font-label {
+    color: #a4b0be;
+    font-size: 11px;
+    white-space: nowrap;
 }
