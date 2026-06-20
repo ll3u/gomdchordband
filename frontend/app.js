@@ -713,8 +713,7 @@ document.getElementById('btn-export').addEventListener('click', () => {
     const backup = {};
     for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
-        // Sichert sowohl die Canvas-Zeichnungen als auch die Song-Geschwindigkeiten
-        if (key.startsWith('canvas_') || key.startsWith('bpm_')) {
+        if ((key.startsWith('canvas_') || key.startsWith('bpm_') || key.startsWith('fontSize_') || key.startsWith('transpose_'))) {
             backup[key] = localStorage.getItem(key);
         }
     }
@@ -734,7 +733,6 @@ document.getElementById('import-file').addEventListener('change', (e) => {
         const backup = JSON.parse(evt.target.result);
         Object.keys(backup).forEach(key => localStorage.setItem(key, backup[key]));
         
-        // Aktualisiert nach dem Import sowohl das Canvas als auch den Tempo-Regler live
         if (currentSongId) {
             loadCanvasData();
             const savedBpm = localStorage.getItem(`bpm_${currentSongId}`);
@@ -742,6 +740,10 @@ document.getElementById('import-file').addEventListener('change', (e) => {
                 currentBpm = parseInt(savedBpm, 10);
                 if (bpmSlider) bpmSlider.value = currentBpm;
                 if (bpmValDisplay) bpmValDisplay.textContent = currentBpm;
+            }
+
+            if (typeof selectSong === "function") {
+                selectSong(currentSongId);
             }
         }
         alert("Notizen und Song-Geschwindigkeiten erfolgreich importiert!");
