@@ -62,6 +62,8 @@ sidebarToggle.addEventListener('click', () => {
     } else {
         sidebar.classList.toggle('closed');
     }
+    // always remove the pulse
+    document.getElementById('menu-hint').classList.remove('pulse-dot');
 });
 
 // 2. SONG-DATEN VOM GO-BACKEND LADEN
