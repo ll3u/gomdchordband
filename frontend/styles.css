@@ -102,13 +102,15 @@ body, html {
 
 #song-list {
     list-style: none;
-    margin: 0;
+    margin: 0 0 7em 0;
     padding: 0;
     height: 100%;
 }
 
 #song-list li {
-    padding: 12px 15px;
+    font-size: clamp(0.8rem, 2.2vw, 1rem);
+    padding: clamp(8px, 1.8vw, 12px) clamp(10px, 2vw, 15px);
+    line-height: 1.3;
     margin-bottom: 8px;
     background: #2f3542;
     border-radius: 6px;
@@ -119,6 +121,7 @@ body, html {
     text-overflow: ellipsis;
     touch-action: manipulation;
 }
+
 
 #song-list li.active {
     background-color: var(--primary);
@@ -736,4 +739,32 @@ button:hover {
 
 .progress-ring-fill {
     transition: stroke-dashoffset 0.1s ease-out;
+}
+
+/* ========================================================
+   ERWEITERUNG: ULTIMATE GUITAR HEADER STYLING (SCHRITT 1.5)
+   ======================================================== */
+.ug-header-block {
+    margin-bottom: 25px;
+    border-bottom: 2px solid #2f3542;
+    padding-bottom: 15px;
+}
+
+.ug-header-title {
+    font-size: 2rem;
+    font-weight: bold;
+    text-transform: capitalize;
+    color: var(--text-dark);
+    margin-bottom: 10px;
+}
+
+.ug-header-meta {
+    font-family: monospace;
+    font-size: 14px;
+    color: #57606f;
+    margin-bottom: 6px;
+}
+
+.ug-song-body {
+    margin-top: 15px;
 }
