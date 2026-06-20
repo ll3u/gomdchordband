@@ -177,7 +177,8 @@ body, html {
 
 .song-content h1, .song-content h2, .song-content h3 {
     font-family: -apple-system, sans-serif;
-    margin-bottom: 15px;
+    margin-top: clamp(12px, 2.5vh, 22px);
+    margin-bottom: clamp(8px, 1.5vh, 16px);
     color: #1e222b;
 }
 
@@ -477,20 +478,23 @@ button:hover {
    ============================================ */
 
 .song-content .row {
-    display: block !important;
-    clear: both !important;
-    white-space: nowrap !important;
+    display: flex;
+    flex-wrap: wrap; /* Erlaubt den Spalten, nach unten umzubrechen */
+    width: 100%;
+    clear: both;
+    white-space: nowrap;
     line-height: 1.4;  /* Base line height for lyrics */
-    margin-bottom: 0.5em !important;
+    margin-bottom: 0.5em;
 }
 
 .song-content .column {
-    display: inline-block !important;
-    flex-direction: column !important;
-    vertical-align: top !important;
-    min-width: 1ch !important;
-    margin: 0 0 !important;
-    padding: 0 !important;
+    display: flex;
+    flex-direction: column;
+    white-space: pre; /* Behält die Leerzeichen am Ende der Textteile bei */
+    vertical-align: top;
+    min-width: 1ch;
+    margin: 0 0;
+    padding: 0;
     line-height: 1.4;  /* Match row line height */
 }
 
@@ -766,11 +770,12 @@ button:hover {
 }
 
 .ug-header-title {
-    font-size: 2rem;
+    font-size: clamp(1.3rem, 5.5vw, 2rem);
     font-weight: bold;
     text-transform: capitalize;
     color: var(--text-dark);
     margin-bottom: 10px;
+    white-space: nowrap; 
 }
 
 .ug-header-meta {
@@ -783,3 +788,4 @@ button:hover {
 .ug-song-body {
     margin-top: 15px;
 }
+
