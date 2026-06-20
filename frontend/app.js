@@ -240,10 +240,13 @@ function renderChordSheet() {
         const cpSong = cpParser.parse(cpBody);
 
         const divFormatter = new ChordSheetJS.HtmlDivFormatter();
-        const mainBodyHtml = divFormatter.format(cpSong);
+        let mainBodyHtml = divFormatter.format(cpSong);
 
-        // HTML in das Dokument schreiben
-        //document.getElementById('song-render').innerHTML = '<div class="ug-header-block">' + headerHtml + '</div><div class="ug-song-body">' + mainBodyHtml + '</div>';#
+        mainBodyHtml = mainBodyHtml.replace(
+          /<div class="chord">([A-G][#bμ♭♯]?[^<0-9]*)([0-9]+)<\/div>/g, 
+          '<div class="chord">$1<sup>$2</sup></div>'
+        );
+
         document.getElementById('song-render').innerHTML = DOMPurify.sanitize('<div class="ug-header-block">' + headerHtml + '</div><div class="ug-song-body">' + mainBodyHtml + '</div>');
     } catch (e) {
         console.error("Rendering fehlgeschlagen, nutze Fallback:", e);

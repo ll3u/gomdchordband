@@ -512,6 +512,12 @@ button:hover {
     font-family: inherit;
 }
 
+.chord sup {
+  font-size: 0.65em;      /* Macht die Zusätze angenehm klein */
+  vertical-align: super;  /* Schiebt sie sauber nach oben */
+  line-height: 0;         /* CRITICAL: Verhindert, dass das Layout vertikal verzerrt wird */
+}
+
 .song-content .lyrics {
     display: block !important;
     min-height: 1.2em !important;
