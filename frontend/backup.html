@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Song Backups Versionierung</title>
+    <style>
+        body { font-family: sans-serif; background: #15181f; color: white; padding: 40px; }
+        .container { max-width: 800px; margin: 0 auto; background: #1e222b; padding: 20px; border-radius: 8px; border: 1px solid #2f3542; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        h2 { margin-top: 0; color: #ffffff; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #2f3542; }
+        th { background: #2f3542; color: #a4b0be; font-size: 14px; }
+        .btn-download { background: #5352ed; border: none; padding: 6px 12px; color: white; border-radius: 4px; cursor: pointer; text-decoration: none; font-size: 13px; font-weight: bold; }
+        .btn-download:hover { background: #3b3b98; }
+        .no-backups { color: #a4b0be; text-align: center; padding: 20px; }
+        .back-link { display: inline-block; margin-bottom: 15px; color: #a4b0be; text-decoration: none; }
+        .back-link:hover { color: white; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/" class="back-link">← Zurück zur App</a>
+        <h2>Archivierte Song-Versionen (Backups)</h2>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>Backup-Dateiname</th>
+                    <th>Aktion</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{range .Backups}}
+                <tr>
+                    <td style="font-family: monospace;">{{.}}</td>
+                    <td>
+                        <a href="/api/songs/backups/download?file={{.}}" class="btn-download">Herunterladen</a>
+                    </td>
+                </tr>
+                {{else}}
+                <tr>
+                    <td colspan="2" class="no-backups">Noch keine Backups oder alten Versionen vorhanden.</td>
+                </tr>
+                {{end}}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

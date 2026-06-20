@@ -74,6 +74,8 @@ func main() {
 	// API Routes
 	http.HandleFunc("/api/songs", state.handleSongsList)
 	http.HandleFunc("/api/songs/", state.handleSongContent)
+	http.HandleFunc("/backup", state.handleBackupList)
+	http.HandleFunc("/api/songs/backup/download", state.handleBackupDownload)
 
 	// Frontend routes
 	frontend, err := fs.Sub(frontendFS, "frontend")
@@ -192,6 +194,60 @@ func (s *AppState) handleSongContent(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	song.Content = string(content)
 	json.NewEncoder(w).Encode(song)
+}
+
+func (s *AppState) handleBackupList(w http.ResponseWriter, r *http.Request) {
+	backupDir := "./songs/backup"
+	var backupFiles []string
+
+	// Liest den Backup-Ordner aus, falls er existiert
+	if files, err := os.ReadDir(backupDir); err == nil {
+		for _, file := range files {
+			if !file.IsDir() && strings.HasSuffix(file.Name(), ".bak.md") {
+				backupFiles = append(backupFiles, file.Name())
+			}
+		}
+	}
+
+	// Lädt das ausgelagerte Template aus dem embedded FS
+	tmplBytes, err := frontendFS.ReadFile("frontend/backup.html")
+	if err != nil {
+		http.Error(w, "Fehler beim Laden des Backup-Templates", http.StatusInternalServerError)
+		return
+	}
+
+	t, err := template.New("backup").Parse(string(tmplBytes))
+	if err != nil {
+		http.Error(w, "Fehler beim Parsen des Templates", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	t.Execute(w, map[string]interface{}{
+		"Backup": backupFiles,
+	})
+}
+
+// handleBackupDownload liefert eine spezifische .bak.md Datei als sicheren Download aus
+func (s *AppState) handleBackupDownload(w http.ResponseWriter, r *http.Request) {
+	fileName := r.URL.Query().Get("file")
+	// Sicherheits-Check: Verhindert, dass Angreifer über Pfad-Manipulationen (../) andere Systemdateien stehlen
+	if fileName == "" || strings.Contains(fileName, "..") || !strings.HasSuffix(fileName, ".bak.md") {
+		http.Error(w, "Ungültiger Dateiname", http.StatusBadRequest)
+		return
+	}
+
+	backupPath := filepath.Join("./songs/backup", fileName)
+	content, err := os.ReadFile(backupPath)
+	if err != nil {
+		http.Error(w, "Datei nicht gefunden", http.StatusNotFound)
+		return
+	}
+
+	// Zwingt den Browser, die Datei als textbasierten Download zu behandeln, anstatt sie anzuzeigen
+	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", fileName))
+	w.Header().Set("Content-Type", "text/markdown; charset=utf-8")
+	w.Write(content)
 }
 
 type ImportRequest struct {
@@ -313,7 +369,7 @@ func (s *AppState) handleSongImport(w http.ResponseWriter, r *http.Request) {
 		finalPath := filepath.Join(songsDir, titleStr)
 		// 5. Backup
 		if _, err := os.Stat(finalPath); err == nil {
-			backupDir := filepath.Join(songsDir, "backups")
+			backupDir := filepath.Join(songsDir, "backup")
 			// Erstellt den Backup-Ordner, falls er noch nicht existiert
 			if err := os.MkdirAll(backupDir, 0755); err != nil {
 				http.Error(w, "Fehler beim Erstellen des Backup-Verzeichnisses", http.StatusInternalServerError)
