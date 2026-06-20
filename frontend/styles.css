@@ -1,3 +1,17 @@
+@font-face {
+  font-family: 'Roboto Mono';
+  font-style: normal;
+  font-weight: 400;
+  src: url('/fonts/roboto-mono-regular.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Roboto Mono';
+  font-style: normal;
+  font-weight: 700;
+  src: url('/fonts/roboto-mono-bold.woff2') format('woff2');
+}
+
 :root {
     --bg-dark: #1e222b;
     --bg-sidebar: #15181f;
@@ -154,7 +168,7 @@ body, html {
 /* Song Content */
 .song-content {
     padding: 1.0em 1.2em;
-    font-family: "Courier New", Courier, monospace;
+    font-family: "Roboto Mono", "Courier New", monospace, monospace;
     font-size: 18px;
     line-height: 1.6;
     white-space: pre-wrap;
@@ -475,7 +489,7 @@ button:hover {
     flex-direction: column !important;
     vertical-align: top !important;
     min-width: 1ch !important;
-    margin: 0 0.1em !important;
+    margin: 0 0 !important;
     padding: 0 !important;
     line-height: 1.4;  /* Match row line height */
 }
@@ -490,7 +504,8 @@ button:hover {
     margin-bottom: 0.2em !important;
     white-space: nowrap !important;
     padding: 0 0.2em !important;
-    font-size: 1em !important;  /* Slightly smaller than lyrics */
+    font-size: 1em !important; 
+    font-family: inherit;
 }
 
 .song-content .lyrics {
