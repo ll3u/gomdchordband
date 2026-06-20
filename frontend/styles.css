@@ -39,6 +39,18 @@ body, html {
     overflow: hidden;
 }
 
+.mdi-icon {
+    width: 20px;
+    height: 20px;
+    fill: currentColor;
+    vertical-align: middle;
+    display: inline-block;
+}
+.btn-icon .mdi-icon {
+    width: 24px;
+    height: 24px;
+}
+
 .sidebar.open {
     overflow-y: auto;
 }

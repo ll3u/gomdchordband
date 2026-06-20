@@ -9,7 +9,7 @@
     <meta http-equiv="Content-Security-Policy" 
       content="default-src 'self'; 
                script-src 'self'; 
-               style-src 'self' 'unsafe-inline'; 
+               style-src 'self'; 
                img-src 'self' data:; 
                connect-src 'self' /api/; 
                font-src 'self';">
@@ -20,20 +20,6 @@
     <script   ipt src="/purify.min.js"></script>   
 
     <link rel="stylesheet" href="/styles.css">
-
-    <style>
-        .mdi-icon {
-            width: 20px;
-            height: 20px;
-            fill: currentColor;
-            vertical-align: middle;
-            display: inline-block;
-        }
-        .btn-icon .mdi-icon {
-            width: 24px;
-            height: 24px;
-        }
-    </style>
 </head>
 <body>
     <div class="app-container">
@@ -102,7 +88,7 @@
         <div class="action-overlay-container">
             
             <div class="bpm-slider-container">
-                <input type="range" id="bpm-slider" min="40" max="240" value="90">
+                <input type="range" id="bpm-slider" min="40" max="420" value="190">
                 <span id="bpm-val-display">90</span>
                 <span class="bpm-label">x Speed</span>
             </div>
