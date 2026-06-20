@@ -11,8 +11,9 @@ const ASSETS_TO_CACHE = [
     '/app.js',
     '/sw-register.js',
     '/manifest.json',
-    'https://cdn.jsdelivr.net/npm/markdown-it@14.0.0/dist/markdown-it.min.js',
-    '/ChordSheetJS.bundle.min.js'
+    '/ChordSheetJS.bundle.min.js',
+    '/fonts/roboto-mono-regular.woff2',
+    '/fonts/roboto-mono-bold.woff2',
 ];
 
 // Install: Cache all static assets

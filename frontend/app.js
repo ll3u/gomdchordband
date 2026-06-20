@@ -1,4 +1,3 @@
-const md = window.markdownit({ html: true });
 let currentSongId = null;
 let currentBpm = 90;
 let autoscrollInterval = null;
@@ -247,10 +246,6 @@ function renderChordSheet() {
         document.getElementById('song-render').innerHTML = '<div class="ug-header-block">' + headerHtml + '</div><div class="ug-song-body">' + mainBodyHtml + '</div>';
     } catch (e) {
         console.error("Rendering fehlgeschlagen, nutze Fallback:", e);
-        if (window.markdownit) {
-            const md = window.markdownit({ html: true });
-            document.getElementById('song-render').innerHTML = md.render(currentRawContent);
-        }
     }
 
     setTimeout(() => {
