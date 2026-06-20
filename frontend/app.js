@@ -237,15 +237,21 @@ function renderChordSheet() {
         const cpBody = cpFormatter.format(sharpSong);
 
         const cpParser = new ChordSheetJS.ChordProParser();
-        const cpSong = cpParser.parse(cpBody);
+        const cpSong = cpParser.parse(cpBody, { notation: 'GERMAN' });
 
         const divFormatter = new ChordSheetJS.HtmlDivFormatter();
         let mainBodyHtml = divFormatter.format(cpSong);
 
-        mainBodyHtml = mainBodyHtml.replace(
-          /<div class="chord">([A-G][#bμ♭♯]?[^<0-9]*)([0-9]+)<\/div>/g, 
-          '<div class="chord">$1<sup>$2</sup></div>'
-        );
+        mainBodyHtml = mainBodyHtml.replace(/<div class="chord">B([b#]?)([^<]*)<\/div>/g, (match, accidental, rest) => {
+          if (accidental === 'b') return `<div class="chord">B${rest}</div>`;
+          if (accidental === '#') return `<div class="chord">B#${rest}</div>`;
+          return `<div class="chord">H${rest}</div>`;
+        });
+
+        mainBodyHtml = mainBodyHtml.replace(/<div class="chord">([^<]+)<\/div>/g, (match, chordContent) => {
+          const raisedNumbers = chordContent.replace(/([0-9]+)/g, '<sup>$1</sup>');
+          return `<div class="chord">${raisedNumbers}</div>`;
+        });
 
         document.getElementById('song-render').innerHTML = DOMPurify.sanitize('<div class="ug-header-block">' + headerHtml + '</div><div class="ug-song-body">' + mainBodyHtml + '</div>');
     } catch (e) {
