@@ -1,7 +1,7 @@
 // Service Worker for Band Chords PWA
-const CACHE_NAME = 'band-chords-v2.1.2';
-const ASSETS_CACHE = 'band-chords-assets-v2.1.2';
-const DATA_CACHE = 'band-chords-data-v2.1.2';
+const CACHE_NAME = 'band-chords-v2.2.0';
+const ASSETS_CACHE = 'band-chords-assets-v2.2.0';
+const DATA_CACHE = 'band-chords-data-v2.2.0';
 
 // Assets to cache (critical for offline functionality)
 const ASSETS_TO_CACHE = [
@@ -14,6 +14,7 @@ const ASSETS_TO_CACHE = [
     '/ChordSheetJS.bundle.min.js',
     '/fonts/roboto-mono-regular.woff2',
     '/fonts/roboto-mono-bold.woff2',
+    '/purify.min.js',
 ];
 
 // Install: Cache all static assets
