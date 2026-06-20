@@ -2,7 +2,7 @@
   "name": "Band Chords PWA",
   "short_name": "BandChords",
   "description": "Offline chord sheets and tabs for band rehearsals with annotation support",
-  "start_url": "/",
+  "start_url": "/index.html",
   "display": "standalone",
   "background_color": "#1a1a2e",
   "theme_color": "#2c3e50",
@@ -19,5 +19,10 @@
     }
   ],
   "related_applications": [],
-  "prefer_related_applications": false
+  "scope": "/",
+  "prefer_related_applications": false,
+  "protocol_handlers": [],
+  "launch_handler": {
+    "client_mode": "navigate-existing"
+  }
 }
