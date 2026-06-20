@@ -243,7 +243,8 @@ function renderChordSheet() {
         const mainBodyHtml = divFormatter.format(cpSong);
 
         // HTML in das Dokument schreiben
-        document.getElementById('song-render').innerHTML = '<div class="ug-header-block">' + headerHtml + '</div><div class="ug-song-body">' + mainBodyHtml + '</div>';
+        //document.getElementById('song-render').innerHTML = '<div class="ug-header-block">' + headerHtml + '</div><div class="ug-song-body">' + mainBodyHtml + '</div>';#
+        document.getElementById('song-render').innerHTML = DOMPurify.sanitize('<div class="ug-header-block">' + headerHtml + '</div><div class="ug-song-body">' + mainBodyHtml + '</div>');
     } catch (e) {
         console.error("Rendering fehlgeschlagen, nutze Fallback:", e);
     }
