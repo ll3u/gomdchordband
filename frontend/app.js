@@ -37,6 +37,7 @@ const wrapper = document.getElementById('wrapper');
 // Font size state
 const fontSizeSlider = document.getElementById('font-size-slider');
 const fontSizeDisplay = document.getElementById('font-size-display');
+const progressRing = document.querySelector('.progress-ring-fill');
 
 // 1. SIDEBAR TOGGLE (Für Tablets)
 sidebarToggle.addEventListener('click', () => {
@@ -276,6 +277,18 @@ function updateFontSize() {
     }, 50);
 }
 
+function updateProgressRing() {
+    if (!progressRing || !scrollContainer) return;
+
+    const scrollTop = scrollContainer.scrollTop;
+    const scrollHeight = scrollContainer.scrollHeight - scrollContainer.clientHeight;
+    const progress = Math.min(scrollTop / scrollHeight, 1);
+
+    // Circumference = 2 * PI * 26 = 163.36
+    const offset = 163.36 * (1 - progress);
+    progressRing.style.strokeDashoffset = offset;
+}
+
 // 3. AUTOMATISCHES ABSPIELEN & SCROLLEN (AUTOSCROLL)
 function toggleAutoscroll() {
     if (isScrolling) {
@@ -283,6 +296,7 @@ function toggleAutoscroll() {
     } else {
         startAutoscroll();
     }
+    updateProgressRing();
 }
 
 function startAutoscroll() {
@@ -827,8 +841,9 @@ window.onload = () => {
         }
     });
 
-    if (fontSizeSlider) {
-        fontSizeSlider.addEventListener('input', updateFontSize);
+    if (scrollContainer) {
+        scrollContainer.addEventListener('scroll', updateProgressRing, { passive: true });
+        updateProgressRing();
     }
 };
 
@@ -868,6 +883,11 @@ if (bpmSlider) {
     bpmSlider.addEventListener('touchmove', stopPropagation, { passive: true });
 }
 
+if (fontSizeSlider) {
+    fontSizeSlider.addEventListener('input', updateFontSize, { passive: true });
+    // Initialize on load
+    updateFontSize();
+}
 
 document.getElementById('btn-undo').addEventListener('click', () => {
     if (!currentSongId || strokes.length === 0) return;
