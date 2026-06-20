@@ -383,12 +383,21 @@ body, html {
     cursor: pointer;
 }
 
-.action-overlay-container .btn-collapse svg,
+.action-overlay-container .btn-collapse svg {
+    width: 20px;
+    height: 20px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
 .action-overlay-container .play-btn svg {
     width: 22px;
     height: 22px;
-    fill: none;
-    stroke: currentColor;
+    fill: currentColor ;
+    stroke: none;
     stroke-width: 1.5;
     stroke-linecap: round;
     stroke-linejoin: round;
