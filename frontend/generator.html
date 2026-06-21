@@ -1,31 +1,34 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Band-Guard Setup</title>
+    <title>GoMDChordBand guard setup</title>
     <style>
         body { font-family: monospace; background: #15181f; color: white; text-align: center; padding-top: 40px; }
         .qr-container { background: white; padding: 20px; display: inline-block; border-radius: 8px; margin: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.6); }
         .code-box { font-size: 24px; color: #ff4757; font-weight: bold; background: #1e222b; padding: 10px; display: inline-block; border-radius: 4px; border: 1px solid #2f3542; }
         .fallback-text { color: #a4b0be; max-width: 500px; margin: 20px auto; font-size: 12px; line-height: 1.5; text-align: left; background: #1e222b; padding: 15px; border-radius: 6px; border: 1px solid #2f3542; }
+        code {
+            font-family: 'Fira Code', 'Courier New', monospace;
+            color: #d63384;            /* Classic pink/red code color */
+            padding: 0.2rem 0.4rem;    /* Padding around text */
+            border-radius: 4px;         /* Soft rounded corners */
+            font-size: 85%;            /* Slightly smaller than body text */
+        }
     </style>
 </head>
 <body>
-    <h2>Scanne diesen Code EINMALIG mit Aegis / FreeOTP</h2>
+    <h2>scan with aegis or freeOTP</h2>
     
     <div class="qr-container">
-        <!-- Das Go-Backend ersetzt diesen Platzhalter dynamisch mit dem Base64-PNG-String -->
-        <img src="data:image/png;base64,{{.Base64Png}}" alt="Echter Offline QR Code" width="256" height="256" />
+        <img src="data:image/png;base64,{{.Base64Png}}" alt="QR Code" width="256" height="256" />
     </div>
 
-    <p>Aktueller Test-Code vom Server: <span class="code-box">{{.ValidCode}}</span> (Noch {{.RemainingSec}} Sek. gueltig)</p>
+    <p>current test code from the server: <span class="code-box">{{.ValidCode}}</span> ({{.RemainingSec}} seconds remaining)</p>
     
     <div class="fallback-text">
-        <strong>🔒 HINWEIS (100% Offline-Fallback):</strong><br>
-        Die App erkennt beim Scannen automatisch alle Parameter (8 Ziffern, SHA1, 30 Sek. Intervall).<br>
-        Generierter Base32-Schlüssel im Bild: <span style="color:#2ed573; font-weight:bold; word-break:break-all;">{{.DerivedKey}}</span>
+        
+        <strong>⚠️</strong> lock this endpoint with env <code>ALLOW_CODE_GENERATION="false"</code>!
     </div>
-    
-    <p style="color:#ff4757; font-weight:bold; margin-top:35px;">Sperre diesen Endpunkt danach unbedingt ueber ALLOW_CODE_GENERATION="false"!</p>
 </body>
 </html>

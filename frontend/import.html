@@ -1,15 +1,10 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Song Inhalt Import</title>
+    <title>GoMDChordBand import song</title>
     <style>
-        body { 
-            font-family: sans-serif; 
-            background: #15181f; 
-            color: white; 
-            padding: 40px; 
-        }
+        body { font-family: monospace; background: #15181f; color: white; padding-top: 40px; }
         .container { 
             max-width: 600px; 
             margin: 0 auto; 
@@ -71,18 +66,18 @@
 </head>
 <body>
     <div class="container">
-        <h2>Song Inhalt manuell importieren</h2>
+        <h2>import song</h2>
         <form method="POST" action="/api/songs/import">
-            <label>Song-Titel oder Dateiname (z.B. amazing_grace.md):</label>
+            <label>file-name/ song title (<code>amazing_grace.md</code>)</label>
             <input type="text" name="title" placeholder="amazing_grace.md" required>
 
-            <label>Song-Inhalt (Akkorde & Text hier einfügen):</label>
-            <textarea name="content" placeholder="# Song Titel&#10;&#10;[Verse 1]&#10;G           C&#10;Amazing Grace..." required></textarea>
+            <label>content</label>
+            <textarea name="content" placeholder="# song title&#10;&#10;[Verse 1]&#10;G           C&#10;Amazing Grace..." required></textarea>
             
-            <label>8-Stelliger Band-Guard Code (aus Aegis):</label>
+            <label>validation code (TOTP)</label>
             <input type="text" name="band_guard_code" placeholder="12345678" pattern="[0-9]{8}" inputmode="numeric" maxlength="8" autocomplete="off" required>
             
-            <button type="submit">Song im System speichern</button>
+            <button type="submit">save the song</button>
         </form>
     </div>
 </body>

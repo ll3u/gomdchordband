@@ -143,6 +143,10 @@ func (s *AppState) handleSongsList(w http.ResponseWriter, r *http.Request) {
 
 // handleSongContent returns the content of a specific song
 func (s *AppState) handleSongContent(w http.ResponseWriter, r *http.Request) {
+	if strings.Contains(r.URL.Path, "/api/songs/import") { //switch for import
+		s.handleSongImport(w, r)
+		return
+	}
 	// Extract song ID from path: /api/songs/{id}
 	id := strings.TrimPrefix(r.URL.Path, "/api/songs/")
 	if id == "" {

@@ -1,22 +1,61 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Import erfolgreich</title>
+    <title>GoMDChordBand import succeed</title>
     <style>
-        body { font-family: sans-serif; background: #15181f; color: white; text-align: center; padding-top: 80px; }
+        body { font-family: monospace; background: #15181f; color: white; text-align: center; padding-top: 40px; }
         .card { max-width: 500px; margin: 0 auto; background: #1e222b; padding: 30px; border-radius: 8px; border: 1px solid #2f3542; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
-        h1 { color: #2ed573; margin-top: 0; }
-        a { display: inline-block; margin-top: 20px; color: #5352ed; text-decoration: none; font-weight: bold; }
-        a:hover { text-decoration: underline; }
+        h1 {
+            color: #2ed573; 
+            margin-top: 0;
+            gap: 8px;
+        }
+
+        h1 svg {
+            width: 2vw;
+            height: 2vw;
+            flex-shrink: 0; /* Verhindert, dass das SVG gestaucht wird, wenn der Platz eng wird */
+        }
+        a { 
+            display: inline-block;
+            margin-top: 20px;
+            color: #ff4757; 
+            text-decoration: none; 
+            font-weight: normal; 
+            padding: 8px 14px;
+            border-radius: 6px;
+            border: none;
+            background: #2f3542;
+            cursor: pointer;
+            font-weight: 500;
+            line-height: 1.2em;
+        }
+        a:hover { text-decoration: none;background: #3f4a5e; }
+
+        a svg {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+            vertical-align: middle;
+            display: inline-block;
+        }
+
     </style>
 </head>
 <body>
     <div class="card">
-        <h1>🎉 Song erfolgreich gespeichert!</h1>
-        <p>Die Datei wurde fehlerfrei angelegt unter:</p>
+        <h1>
+            <span>song saved successfully</span>
+        </h1>
+        <p>the file was created successfully at:</p>
         <p style="font-family: monospace; background: #15181f; padding: 10px; border-radius: 4px; color: #eccc68;">{{.FileName}}</p>
-        <a href="/">Zurück zur Proberaum-App</a>
+        <a href="/">
+            <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24">
+  <path d="M0 0h24v24H0z" fill="none" />
+  <path fill="currentColor" d="M11.596 8.303L8.165 11.63a.5.5 0 0 0 0 .74l6.63 6.43c.414.401 1.205.158 1.205-.37v-5.723z" />
+  <path fill="currentColor" d="M16 11.293V5.57c0-.528-.791-.771-1.205-.37l-2.482 2.406z" opacity=".5" />
+</svg> back</a>
     </div>
 </body>
 </html>
