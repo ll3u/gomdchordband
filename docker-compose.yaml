@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  chordband:
+    # Holt das frisch gebaute Image direkt aus eurer GitHub Registry
+    image: ghcr.io/ll3u/gomdchordband:latest
+    container_name: band_chord_viewer
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      # Hier trägst du euer geheimes Band-Passwort für die Aegis-Validierung ein
+      - BAND_GUARD_SECRET=PROBERAUMKEY23457
+      # Normalerweise auf false. Nur auf true setzen, wenn du ein neues Handy koppeln musst
+      - ALLOW_CODE_GENERATION=true
+    volumes:
+      # PERSISTENZ: Spiegelt den internen Songs- & Backup-Ordner auf die Festplatte des Servers.
+      # Dadurch geht beim Updaten oder Neustarten des Containers kein einziges Lied verloren.
+      - /DATA/AppData/gomdchordband/songs:/app/songs
