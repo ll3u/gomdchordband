@@ -76,6 +76,7 @@ func main() {
 	http.HandleFunc("/api/songs/", state.handleSongContent)
 	http.HandleFunc("/backup", state.handleBackupList)
 	http.HandleFunc("/api/songs/backup/download", state.handleBackupDownload)
+	http.HandleFunc("/import", state.handleSongImport)
 
 	// Frontend routes
 	frontend, err := fs.Sub(frontendFS, "frontend")
@@ -142,10 +143,6 @@ func (s *AppState) handleSongsList(w http.ResponseWriter, r *http.Request) {
 
 // handleSongContent returns the content of a specific song
 func (s *AppState) handleSongContent(w http.ResponseWriter, r *http.Request) {
-	if strings.Contains(r.URL.Path, "/api/songs/import") { //switch for import
-		s.handleSongImport(w, r)
-		return
-	}
 	// Extract song ID from path: /api/songs/{id}
 	id := strings.TrimPrefix(r.URL.Path, "/api/songs/")
 	if id == "" {
