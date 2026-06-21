@@ -1,7 +1,7 @@
 // Service Worker for Band Chords PWA
-const CACHE_NAME = 'band-chords-v2.2.1';
-const ASSETS_CACHE = 'band-chords-assets-v2.2.1';
-const DATA_CACHE = 'band-chords-data-v2.2.1';
+const CACHE_NAME = 'chord-band-{{.Version}}';
+const ASSETS_CACHE = 'chord-band-assets-{{.Version}}';
+const DATA_CACHE = 'chord-band-data-{{.Version}}';
 
 // Assets to cache (critical for offline functionality)
 const ASSETS_TO_CACHE = [

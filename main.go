@@ -78,13 +78,73 @@ func main() {
 	http.HandleFunc("/api/songs/backup/download", state.handleBackupDownload)
 	http.HandleFunc("/import", state.handleSongImport)
 
-	// Frontend routes
+	// 1. Dein ursprüngliches, funktionierendes Dateisystem erstellen
 	frontend, err := fs.Sub(frontendFS, "frontend")
 	if err != nil {
 		log.Fatalf("Failed to create frontend filesystem: %v", err)
 	}
 
-	http.Handle("/", http.FileServer(http.FS(frontend)))
+	// 2. Erstelle den Standard-FileServer (wie vorher)
+	fileServer := http.FileServer(http.FS(frontend))
+
+	// 3. Einen benutzerdefinierten Handler registrieren, der gezielt filtert
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		// Bereinige den Pfad
+		path := r.URL.Path
+
+		// Prüfe, ob explizit die Startseite angefordert wird
+		if path == "/" || path == "/index.html" {
+			// Lese nur die index.html direkt aus dem embedded FS ein
+			tmplBytes, err := fs.ReadFile(frontend, "index.html")
+			if err != nil {
+				http.NotFound(w, r)
+				return
+			}
+
+			// Erstelle ein HTML-Template daraus
+			tmpl, err := template.New("index").Parse(string(tmplBytes))
+			if err != nil {
+				http.Error(w, "Template Error", http.StatusInternalServerError)
+				return
+			}
+
+			// Sende den richtigen Content-Type-Header vor dem Schreiben mit!
+			w.Header().Set("Content-Type", "text/html; charset=utf-8")
+
+			// Übergibt die Version ans Template.
+			// In deiner index.html schreibst du einfach: {{.Version}}
+			data := map[string]interface{}{
+				"Version": GetVersion(),
+			}
+
+			tmpl.Execute(w, data)
+			return
+		}
+
+		if path == "/sw.js" {
+			tmplBytes, err := fs.ReadFile(frontend, "sw.js")
+			if err != nil {
+				http.NotFound(w, r)
+				return
+			}
+
+			// Nutze text/template für reines JavaScript
+			tmpl, err := template.New("index").Parse(string(tmplBytes))
+			if err != nil {
+				http.Error(w, "Template Error JS", http.StatusInternalServerError)
+				return
+			}
+
+			// WICHTIG: Setzt den richtigen MIME-Type gegen den "nosniff"-Block
+			w.Header().Set("Content-Type", "application/javascript; charset=utf-8")
+			tmpl.Execute(w, map[string]interface{}{"Version": GetVersion()})
+			return
+		}
+
+		// FÜR ALLE ANDEREN STATISCHEN ASSETS (.js, .css, .png):
+		// Übergib die Anfrage an deinen funktionierenden, alten FileServer.
+		fileServer.ServeHTTP(w, r)
+	})
 
 	// Start server
 	addr := ":" + port
