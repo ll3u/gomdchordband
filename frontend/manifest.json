@@ -1,6 +1,6 @@
 {
-  "name": "Band Chords PWA",
-  "short_name": "BandChords",
+  "name": "chord band",
+  "short_name": "chordBand",
   "description": "Offline chord sheets and tabs for band rehearsals with annotation support",
   "start_url": "/",
   "display": "standalone",

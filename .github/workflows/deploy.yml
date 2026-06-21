@@ -41,12 +41,7 @@ jobs:
 
       - name: Get version
         id: version
-        run: |
-          if [[ $GITHUB_REF == refs/tags/* ]]; then
-            echo "version=${GITHUB_REF_NAME}" >> $GITHUB_OUTPUT
-          else
-            echo "version=dev-${GITHUB_SHA:0:7}" >> $GITHUB_OUTPUT
-          fi
+        run: echo "version=${GITHUB_REF_NAME}" >> $GITHUB_OUTPUT
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
