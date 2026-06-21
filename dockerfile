@@ -11,7 +11,6 @@ COPY . .
 
 ARG VERSION=dev
 # Statische Linux-Binary kompilieren
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o gomdchordband main.go
 RUN CGO_ENABLED=0 GOOS=linux go build -ldflags "-X main.Version=${VERSION}" -o gomdchordband .
 
 # Stage 2: Minimales, sicheres Runtime-Image
