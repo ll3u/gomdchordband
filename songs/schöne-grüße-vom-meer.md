@@ -1,6 +1,6 @@
 {title: schöne grüße vom meer}
 {artist: sondaschule}
-{album: Transpose: ?}
+{album: Transpose: -4}
 {tempo: 172}
 
 # ##############################################################################
