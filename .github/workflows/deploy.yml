@@ -3,7 +3,8 @@ name: Build and Package Docker Image
 on:
   push:
     branches:
-      - master # Triggert die Pipeline bei jedem Push auf den Master-Branch
+      - master
+      - main
 
 env:
   REGISTRY: ghcr.io
@@ -11,11 +12,10 @@ env:
 
 jobs:
   build-and-push:
-    runs-allowed: write
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest # KORRIGIERT: Keine ungültigen Befehle mehr in dieser Sektion
     permissions:
       contents: read
-      packages: write # Zwingend erforderlich, um Pakete in die Registry hochzuladen
+      packages: write # Erlaubt das Hochladen des Docker-Pakets in die GitHub Registry
 
     steps:
       - name: Checkout repository
@@ -26,13 +26,13 @@ jobs:
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }} # Wird von GitHub automatisch bereitgestellt
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Extract metadata (tags, labels) for Docker
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${--> env.IMAGE_NAME }}
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             type=raw,value=latest
 
