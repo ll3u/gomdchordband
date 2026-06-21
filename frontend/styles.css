@@ -583,6 +583,35 @@ button:hover {
     font-family: inherit;
 }
 
+.song-content .annotation {
+    font-weight: bold;
+    color: #57606f;
+    display: block !important;
+    height: auto !important;
+    min-height: 1.2em !important;
+    line-height: 1.1 !important;
+    margin-bottom: 0.2em !important;
+    white-space: nowrap !important;
+    padding: 0 0.2em !important;
+    font-size: .9em !important; 
+    font-family: inherit;
+}
+
+.song-content .comment {
+    font-weight: normal;
+    font-style: italic;
+    color: #57606f;
+    display: block !important;
+    height: auto !important;
+    min-height: 1.2em !important;
+    line-height: 1.1 !important;
+    margin-bottom: 0.2em !important;
+    white-space: nowrap !important;
+    padding: 0 0.2em !important;
+    font-size: .9em !important; 
+    font-family: inherit;
+}
+
 .chord sup {
   font-size: 0.65em;      /* Macht die Zusätze angenehm klein */
   vertical-align: super;  /* Schiebt sie sauber nach oben */
@@ -855,6 +884,7 @@ button:hover {
     color: var(--text-dark);
     margin-bottom: 10px;
     white-space: nowrap; 
+    letter-spacing: -2px;
 }
 
 .ug-header-meta {

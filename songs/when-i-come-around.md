@@ -1,96 +1,77 @@
-# when i come around - green day
+{title: when i come around}
+{artist: green day}
+{album: Transpose: +1}
+{tempo: 98}
 
-Tuning: Eb Ab Db Gb Bb Eb
-**Tempo:** 98 BPM
-<!-- #869949 -->
+# ##############################################################################
 
-[Intro]
-G5  D5  Em  C  x3
+{start_of_bridge: Intro}
+[G5]  [D5]  [Em]  [C]  [*x3]
+{end_of_bridge}
 
-[Verse 1]
-G5    D5               Em   C
-   I heard you crying loud
-G5          D5         Em   C
-   all the way across town
-            G5                  D5
-You've been searching for that someone
-         Em            C
-and it's me out on the prowl
-   G5       D5               Em         C
-As you sit around feeling sorry for yourself
+{start_of_verse: Verse 1}
+[G5]   I h[D5]eard you crying l[Em]oud  [C]
+[G5]   all the w[D5]ay across t[Em]own  [C]
+You've been [G5]searching for that s[D5]omeone
+and it's [Em]me out on the [C]prowl
+As [G5]you sit a[D5]round feeling sor[Em]ry for your[C]self
 
-G5       D5                Em   C
-   Well, don't get lonely now
-G5     D5                Em   C
-   And dry your whining eyes
-         G5               D5
-I'm just roaming for the moment
-         Em              C
-Sleazin' my back yard so don't get
-   G5               D5             Em       C
-so uptight you been thinking about ditching me
+[G5]   Well, [D5]don't get lonely n[Em]ow   [C]
+[G5]   And [D5]dry your whining e[Em]yes  [C]
+I'm just [G5]roaming for the m[D5]oment
+Sleazin' [Em]my back yard so [C]don't get
+so [G5]uptight you been [D5]thinking about [Em]ditching [C]me
+{end_of_verse}
 
-[Chorus]
-A5                         C
-    No time to search the world around
-A5                                C
-    'Cause you know where I'll be found
+{start_of_chorus}
+[A5]    No time to search the w[C]orld around
+[A5]    'Cause you know where I'll be [C]found
 
 When I come around
+{end_of_chorus}
 
-[Instrumental]
-G5  D5  Em  C  x2
+{start_of_bridge: Instrumental}
+[G5]  [D5]  [Em]  [C]  [*x2]
+{end_of_bridge}
 
-[Verse 2]
-G5   D5              Em   C
-   I heard it all before
-G5    D5                   Em   C
-   So don't knock down my door
-       G5          D5        Em           C
-I'm a loser and a user so I don't need no accuser
-   G5              D5             Em          C
-to try and slag me down because I know you're right
+{start_of_verse: Verse 2}
+[G5]   I [D5]heard it all bef[Em]ore  [C]
+[G5]   So [D5]don't knock down my d[Em]oor  [C]
+I'm a l[G5]oser and a u[D5]ser so I d[Em]on't need no [C]accuser
+to [G5]try and slag me [D5]down because I [Em]know you're [C]right
 
-G5    D5              Em   C
-   So go do what you like
-G5      D5              Em   C
-   Make sure you do it wise
-        G5                  D5
-You may find out that your self doubt
-        Em             C
-means nothing was ever there
-    G5               D5
-You can't go forcing something
-        Em       C
-if it's just not right
+[G5]   So [D5]go do what you l[Em]ike  [C]
+[G5]   Make [D5]sure you do it w[Em]ise  [C]
+You may [G5]find out that your s[D5]elf doubt
+means no[Em]thing was ever [C]there
+You [G5]can't go forcing [D5]something
+if it's [Em]just not [C]right
+{end_of_verse}
 
-[Chorus]
-A5                         C
-    No time to search the world around
-A5                                C
-    'Cause you know where I'll be found
+{start_of_chorus}
+[A5]    No time to search the w[C]orld around
+[A5]    'Cause you know where I'll be [C]found
 
 When I come around
+{end_of_chorus}
 
-[Instrumental]
-G5  D5  Em  C  x2
+{start_of_bridge: Instrumental}
+[G5]  [D5]  [Em]  [C]  [*x2]
+{end_of_bridge}
 
-[Solo]
+{start_of_bridge: Solo}
 
 ???
+{end_of_bridge}
 
-[Chorus]
-A5                         C
-    No time to search the world around
-A5                                C
-    'Cause you know where I'll be found
-              G5   D5
-When I come around
+{start_of_chorus}
+[A5]    No time to search the w[C]orld around
+[A5]    'Cause you know where I'll be [C]found
+When I come ar[G5]ound [D5]
+{end_of_chorus}
 
-[Outro]
-Em  C             G5   D5
-    When I come around
-Em  C             G5   D5
-    When I come around
-Em  C              G5   D5  Em  C
-     When I come around
+{start_of_bridge: Outro}
+[Em]    [C]When I come ar[G5]ound [D5]
+[Em]    [C]When I come ar[G5]ound [D5]
+[Em]    [C] When I come ar[G5]ound [D5]    [Em]    [C]
+{end_of_bridge}

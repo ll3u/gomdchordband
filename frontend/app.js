@@ -190,59 +190,28 @@ function renderChordSheet() {
     if (!currentRawContent) return;
     try {
         const lines = currentRawContent.split('\n');
-        let headerHtml = "";
-        let songBodyLines = [];
-        let inHeader = true;
-
-        lines.forEach(line => {
-            const trimmed = line.trim();
-
-            if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
-                inHeader = false;
-            }
-
-            if (inHeader) {
-                if (trimmed.startsWith('# ')) {
-                    headerHtml += `<h1 class="ug-header-title">${trimmed.replace('# ', '')}</h1>`;
-                } 
-                else if (trimmed.toLowerCase().includes('tempo:')) {
-                    const cleanBpm = trimmed.replace(/\*/g, '');
-                    headerHtml += `<div class="ug-header-meta"><strong>${cleanBpm}</strong></div>`;
-                } 
-                else if (trimmed.toLowerCase().includes('tuning:') || trimmed.toLowerCase().includes('key:') || trimmed.toLowerCase().includes('capo:')) {
-                    const cleanMeta = trimmed.replace(/\*/g, '');
-                    headerHtml += `<div class="ug-header-meta">${cleanMeta}</div>`;
-                }
-            } else {
-                songBodyLines.push(line);
-            }
-        });
-
-        while (songBodyLines.length > 0 && songBodyLines[0].trim() === "") {
-            songBodyLines.shift();
-        }
-
-        const songBodyText = songBodyLines.join('\n');
-
-        const ugParser = new ChordSheetJS.UltimateGuitarParser();
-        const ugSong = ugParser.parse(songBodyText);
-        
-        let transposedSong = null;
-        if (currentTransposeOffset !== 0 && typeof ChordSheetJS.Chord !== 'undefined') {
-            transposedSong = ugSong.transpose(currentTransposeOffset);
-        }
-
-        let baseSong = transposedSong ?? ugSong;
-        const sharpSong = baseSong.useModifier('#');
-
-        const cpFormatter = new ChordSheetJS.ChordProFormatter();
-        const cpBody = cpFormatter.format(sharpSong);
+        const songBodyText = currentRawContent;
 
         const cpParser = new ChordSheetJS.ChordProParser();
-        const cpSong = cpParser.parse(cpBody, { notation: 'GERMAN' });
+        const cpSong = cpParser.parse(songBodyText, { notation: 'GERMAN' });
+      
+        let transposedSong = null;
+        if (currentTransposeOffset !== 0 && typeof ChordSheetJS.Chord !== 'undefined') {
+            transposedSong = cpSong.transpose(currentTransposeOffset);
+        }
+
+        let baseSong = transposedSong ?? cpSong;
+        const sharpSong = baseSong.useModifier('#');
+
+        console.log(sharpSong.metadata);
+
+        let headerHtml = parseUgHeader(sharpSong.metadata);
+        sharpSong.metadata.set('title', '');
+        sharpSong.metadata.set('subtitle', ''); 
+        sharpSong.metadata.set('album', ''); 
 
         const divFormatter = new ChordSheetJS.HtmlDivFormatter();
-        let mainBodyHtml = divFormatter.format(cpSong);
+        let mainBodyHtml = divFormatter.format(sharpSong);
 
         mainBodyHtml = mainBodyHtml.replace(/<div class="chord">B([b#]?)([^<]*)<\/div>/g, (match, accidental, rest) => {
           if (accidental === 'b') return `<div class="chord">B${rest}</div>`;
@@ -251,7 +220,7 @@ function renderChordSheet() {
         });
 
         mainBodyHtml = mainBodyHtml.replace(/<div class="chord">([^<]+)<\/div>/g, (match, chordContent) => {
-          const raisedNumbers = chordContent.replace(/([0-9]+)/g, '<sup>$1</sup>');
+          const raisedNumbers = chordContent.replace(/(\([0-9]+\)|[0-9]+)/g, '<sup>$1</sup>');
           return `<div class="chord">${raisedNumbers}</div>`;
         });
 
@@ -264,6 +233,37 @@ function renderChordSheet() {
         if (typeof resizeCanvas === "function") resizeCanvas();
         if (typeof loadCanvasData === "function") loadCanvasData();
     }, 50);
+}
+
+function parseUgHeader(metadata) {
+    if (!metadata || typeof metadata.get !== 'function') return '';
+
+    const getMeta = (key) => {
+        const val = metadata.get(key);
+        return val ? String(val).trim() : null;
+    };
+
+    const title  = getMeta('title');
+    const artist = getMeta('artist');
+    const tempo  = getMeta('tempo');
+    const album   = getMeta('album');
+
+    let headerHtml = '';
+
+    if (title || artist) {
+        const fullTitle = artist && title ? `${title} - ${artist}` : (title || artist);
+        headerHtml += `<h1 class="ug-header-title">${fullTitle}</h1>`;
+    }
+
+    if (album) {
+        headerHtml += `<div class="ug-header-meta">${album}</div>`;
+    }
+
+    if (tempo) {
+        const bpmSuffix = tempo.toLowerCase().includes('bpm') ? '' : ' BPM';
+        headerHtml += `<div class="ug-header-meta">Tempo: <strong>${tempo}${bpmSuffix}</strong></div>`;
+    }
+    return headerHtml;
 }
 
 function updateFontSize() {
