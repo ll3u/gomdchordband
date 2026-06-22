@@ -17,3 +17,4 @@ services:
       # PERSISTENZ: Spiegelt den internen Songs- & Backup-Ordner auf die Festplatte des Servers.
       # Dadurch geht beim Updaten oder Neustarten des Containers kein einziges Lied verloren.
       - /DATA/AppData/gomdchordband/songs:/app/songs
+      - /DATA/AppData/gomdchordband/setlists:/app/setlists

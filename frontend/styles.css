@@ -902,3 +902,43 @@ button:hover {
 #song-render {
   min-height: calc(85vh - 60px); 
 }
+
+
+/*
+ * playlist feature
+ */
+
+.playlist-chip-group {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(65px, 1fr));
+    gap: 8px; 
+    padding: 0 15px 12px 15px;
+    width: 100%;
+}
+
+.playlist-chip {
+    background-color: var(--bg-dark);
+    color: #9da3a8;
+    border: none;
+    border-radius: 4px;
+    padding: 10px 4px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    text-align: center;
+    transition: background-color 0.15s ease, color 0.15s ease;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap; 
+}
+
+.playlist-chip:hover {
+    background-color: #4e4e50;
+    color: #ffffff;
+}
+
+.playlist-chip.playlist-chip-active {
+    background-color: var(--primary);
+    color: #ffffff;
+}
+

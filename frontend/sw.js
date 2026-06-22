@@ -75,7 +75,6 @@ self.addEventListener('fetch', (event) => {
 });
 
 // Handle API requests with network-first, cache-fallback strategy
-// Handle API requests with network-first, cache-fallback strategy
 async function handleApiRequest(event) {
   const cache = await caches.open(DATA_CACHE);
   const url = new URL(event.request.url);
@@ -112,6 +111,17 @@ async function handleApiRequest(event) {
         id: "error",
         title: "Offline-Fehler",
         content: "# ⚠️ Song nicht im Cache\nBitte einmal online öffnen."
+      };
+      return new Response(JSON.stringify(fallback), {
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+    // Handle specific setlist requests with error fallback
+    if (url.pathname.startsWith('api/setlists')) {
+      const fallback = {
+        id: "error",
+        title: "Offline-Fehler",
+        content: "# ⚠️ cannot load setlist"
       };
       return new Response(JSON.stringify(fallback), {
         headers: { 'Content-Type': 'application/json' }

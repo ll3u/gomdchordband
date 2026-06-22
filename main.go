@@ -74,6 +74,7 @@ func main() {
 	// API Routes
 	http.HandleFunc("/api/songs", state.handleSongsList)
 	http.HandleFunc("/api/songs/", state.handleSongContent)
+	http.HandleFunc("/api/setlists", state.handleSetlistsList)
 	http.HandleFunc("/backup", state.handleBackupList)
 	http.HandleFunc("/api/songs/backup/download", state.handleBackupDownload)
 	http.HandleFunc("/import", state.handleSongImport)
@@ -730,4 +731,29 @@ func generateMiniQRBMP(text string) []byte {
 	}
 
 	return bmp
+}
+
+func (s *AppState) handleSetlistsList(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+
+	setlistPath := filepath.Clean("./setlists/defaultset.json")
+
+	if _, err := os.Stat(setlistPath); os.IsNotExist(err) {
+		w.Write([]byte("[]"))
+		return
+	}
+
+	content, err := os.ReadFile(setlistPath)
+	if err != nil {
+		http.Error(w, "error reading setlists", http.StatusInternalServerError)
+		return
+	}
+
+	w.Write(content)
 }

@@ -18,6 +18,9 @@ let scrollAccumulator = 0;
 let currentTransposeOffset = 0;
 let wakeLock = null;
 
+let currentPlaylistFilter = "all";
+let playlistsCachedData = [];
+
 // Canvas State
 const canvas = document.getElementById('annotation-canvas');
 const ctx = canvas.getContext('2d');
@@ -73,8 +76,19 @@ async function loadSongs() {
         const songs = await res.json();
         const list = document.getElementById('song-list');
         list.innerHTML = '';
+
+        let songsFiltered = songs;
+
+        if (currentPlaylistFilter !== "all" && playlistsCachedData[currentPlaylistFilter]) {
+            const activePlaylist = playlistsCachedData[currentPlaylistFilter];
+            
+            // Filtert und sortiert die Songs im Speicher exakt nach der JSON-Reihenfolge
+            songsFiltered = activePlaylist.songs
+                .map(filename => songs.find(song => song.id === filename || song.filename === filename))
+                .filter(Boolean); // Entfernt ungültige Einträge
+        }
         
-        songs.forEach(song => {
+        songsFiltered.forEach(song => {
             const li = document.createElement('li');
             li.textContent = song.title;
             li.addEventListener('click', () => {
@@ -94,9 +108,9 @@ async function loadSongs() {
         // Der Service Worker fängt diese Anfragen ab und speichert sie ab.
 
         if (navigator.onLine) {
-            console.log(`Starte automatischen Offline-Sync für ${songs.length} Songs...`);
+            console.log(`Starte automatischen Offline-Sync für ${songsFiltered.length} Songs...`);
             
-            songs.forEach(song => {
+            songsFiltered.forEach(song => {
                 // This simple fetch will trigger the service worker's caching logic
                 fetch(`/api/songs/${encodeURIComponent(song.id)}`)
                     .then(response => {
@@ -973,3 +987,41 @@ document.getElementById('btn-fullscreen').addEventListener('click', async () => 
     document.exitFullscreen();
   }
 });
+
+// playlist feature
+(function() {
+    const chipGroup = document.getElementById('playlist-chips');
+    if (!chipGroup) return;
+
+    chipGroup.addEventListener('click', function(event) {
+        const clickedChip = event.target.closest('.playlist-chip');
+        if (!clickedChip) return;
+
+        chipGroup.querySelectorAll('.playlist-chip').forEach(c => c.classList.remove('playlist-chip-active'));
+        clickedChip.classList.add('playlist-chip-active');
+
+        currentPlaylistFilter = clickedChip.getAttribute('data-playlist');
+
+        if (typeof loadSongs === 'function') {
+            loadSongs(); 
+        } else if (typeof renderSongs === 'function') {
+            renderSongs();
+        }
+    });
+
+    // load cached setlist 
+    fetch('/api/setlists')
+        .then(res => res.json())
+        .then(data => {
+            playlistsCachedData = data;
+            // draw items
+            playlistsCachedData.forEach((list, index) => {
+                const button = document.createElement('button');
+                button.className = 'playlist-chip';
+                button.setAttribute('data-playlist', index); 
+                button.textContent = DOMPurify.sanitize(list.name); 
+                chipGroup.appendChild(button);
+            });
+        })
+        .catch(err => console.error("fetch failed: setlist cache", err));
+})();
