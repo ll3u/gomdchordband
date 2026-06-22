@@ -417,6 +417,9 @@ body, html {
     font-family: monospace;
     color: #eccc68;
     font-size: 13px;
+    display: inline-block;
+    width: 22px;
+    text-align: right;
 }
 
 .action-overlay-container .bpm-label {
