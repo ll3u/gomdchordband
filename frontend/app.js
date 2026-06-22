@@ -26,6 +26,7 @@ const canvas = document.getElementById('annotation-canvas');
 const ctx = canvas.getContext('2d');
 let isDrawing = false;
 let currentTool = 'draw'; // 'draw' oder 'erase'
+let isPenEnabled = false;
 let strokes = []; // Speichert Linien lokal
 
 // DOM Elemente
@@ -450,6 +451,14 @@ function startDrawing(e) {
     isTwoFingerMode = false;
     isDrawing = false;
 
+    // stop painting !!!
+    if (!isPenEnabled) {
+        if (e.touches && e.touches.length === 1) {
+            touchStartScrollY = e.touches[0].clientY;
+        }
+        return;
+    }
+
     // Koordinaten für den verzögerten Start sichern
     const savedCoords = getCoords(e);
 
@@ -475,6 +484,21 @@ function draw(e) {
     // BEVOR ALLEM: Wenn Sidebar offen ist, alle Touch-Events durchlassen
     if (sidebar.classList.contains('open')) {
         return;
+    }
+
+    // enable one-finger scroll
+    if (!isPenEnabled && e.touches && e.touches.length === 1) {
+        e.preventDefault(); // Verhindert Ruckeln des Standard-Browsers
+        const currentY = e.touches[0].clientY;
+        const deltaY = touchStartScrollY - currentY; // Berechnet die Wisch-Distanz
+        
+        // Scrollt den echten Lieder-Textcontainer um diesen Wert
+        const scrollContainer = document.getElementById('scroll-container');
+        if (scrollContainer) {
+            scrollContainer.scrollBy(0, deltaY * (1 / currentScale));
+        }
+        touchStartScrollY = currentY; // Aktualisiert die Position für die flüssige Bewegung
+        return; // Bricht ab, damit keine Mal-Logik ausgeführt wird
     }
 
     // A) LOGIK FÜR ZWEI FINGER (SCROLLEN & ZOOMEN)
@@ -705,15 +729,27 @@ function releaseWakeLock() {
 
 // Toolbar Werkzeuge steuern
 document.getElementById('tool-draw').addEventListener('click', () => {
-    currentTool = 'draw';
-    document.getElementById('tool-draw').classList.add('active');
-    document.getElementById('tool-erase').classList.remove('active');
+    if (isPenEnabled && currentTool === 'draw') {
+        isPenEnabled = false;
+        document.getElementById('tool-draw').classList.remove('active');
+    } else {
+        currentTool = 'draw';
+        isPenEnabled = true;
+        document.getElementById('tool-draw').classList.add('active');
+        document.getElementById('tool-erase').classList.remove('active');
+    }
 });
 
 document.getElementById('tool-erase').addEventListener('click', () => {
-    currentTool = 'erase';
-    document.getElementById('tool-erase').classList.add('active');
-    document.getElementById('tool-draw').classList.remove('active');
+    if (isPenEnabled && currentTool === 'erase') {
+        isPenEnabled = false;
+        document.getElementById('tool-erase').classList.remove('active');
+    } else {
+        currentTool = 'erase';
+        isPenEnabled = true;
+        document.getElementById('tool-erase').classList.add('active');
+        document.getElementById('tool-draw').classList.remove('active');
+    }
 });
 
 document.getElementById('btn-clear-canvas').addEventListener('click', () => {
