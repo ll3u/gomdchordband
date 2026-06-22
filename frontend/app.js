@@ -849,7 +849,17 @@ window.onload = () => {
         }, {passive: true});
     }
     
+    // add setlist-event listener
+    const chipGroup = document.getElementById('playlist-chips');
+    if (chipGroup) {
+        chipGroup.addEventListener('click', handlePlaylistFilterClick);
+    }
+
+    // load songs
     loadSongs();
+    // init setlitst
+    initSetlists();
+
     document.getElementById('btn-refresh').addEventListener('click', loadSongs);
 
     const btnTransUp = document.getElementById('btn-transpose-up');
@@ -1025,32 +1035,35 @@ document.getElementById('btn-fullscreen').addEventListener('click', async () => 
 });
 
 // playlist feature
-(function() {
+function handlePlaylistFilterClick(event) {
     const chipGroup = document.getElementById('playlist-chips');
     if (!chipGroup) return;
 
-    chipGroup.addEventListener('click', function(event) {
-        const clickedChip = event.target.closest('.playlist-chip');
-        if (!clickedChip) return;
+    const clickedChip = event.target.closest('.playlist-chip');
+    if (!clickedChip) return;
 
-        chipGroup.querySelectorAll('.playlist-chip').forEach(c => c.classList.remove('playlist-chip-active'));
-        clickedChip.classList.add('playlist-chip-active');
+    chipGroup.querySelectorAll('.playlist-chip').forEach(c => c.classList.remove('playlist-chip-active'));
+    clickedChip.classList.add('playlist-chip-active');
 
-        currentPlaylistFilter = clickedChip.getAttribute('data-playlist');
+    currentPlaylistFilter = clickedChip.getAttribute('data-playlist');
 
-        if (typeof loadSongs === 'function') {
-            loadSongs(); 
-        } else if (typeof renderSongs === 'function') {
-            renderSongs();
-        }
-    });
+    if (typeof loadSongs === 'function') {
+        loadSongs(); 
+    }
+}
 
-    // load cached setlist 
+function initSetlists() {
+    const chipGroup = document.getElementById('playlist-chips');
+    if (!chipGroup) return;
+
+    const dynamicChips = chipGroup.querySelectorAll('.playlist-chip:not([data-playlist="all"])');
+    dynamicChips.forEach(chip => chip.remove());
+
     fetch('/api/setlists')
         .then(res => res.json())
         .then(data => {
             playlistsCachedData = data;
-            // draw items
+            
             playlistsCachedData.forEach((list, index) => {
                 const button = document.createElement('button');
                 button.className = 'playlist-chip';
@@ -1060,4 +1073,4 @@ document.getElementById('btn-fullscreen').addEventListener('click', async () => 
             });
         })
         .catch(err => console.error("fetch failed: setlist cache", err));
-})();
+}
