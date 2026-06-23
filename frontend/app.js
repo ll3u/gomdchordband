@@ -89,9 +89,14 @@ async function loadSongs() {
                 .filter(Boolean); // Entfernt ungültige Einträge
         }
         
+        const isSetLoaded = songs.length !== songsFiltered.length;
+
         songsFiltered.forEach(song => {
             const li = document.createElement('li');
             li.textContent = song.title;
+            if (isSetLoaded) {
+                li.classList.add('setlist');
+            }
             li.addEventListener('click', () => {
                 selectSong(song.id);
                 if (window.innerWidth <= 1024) {

@@ -175,6 +175,7 @@ body, html {
     margin: 0 0 7em 0;
     padding: 0;
     height: 100%;
+    counter-reset: song-counter;
 }
 
 #song-list li {
@@ -196,6 +197,41 @@ body, html {
 #song-list li.active {
     background-color: var(--primary);
     font-weight: bold;
+}
+
+#song-list li.setlist {
+  position: relative;
+  counter-increment: song-counter;
+  overflow: visible !important;
+  padding-left: 1.2em;
+}
+
+#song-list li.setlist::after {
+  content: "#" counter(song-counter, decimal-leading-zero);
+  
+  position: absolute;
+  top: -6px;
+  left: -6px;
+  z-index: 10;
+  
+  /* Badge */
+  background-color: var(--bg-sidebar);
+  color: #ffffff;
+  font-family: "Roboto Mono";
+  font-size: 10px;
+  font-weight: normal;
+  
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 99px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  
+  border: 1.5px solid var(--bg-dark);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
 }
 
 .content-viewer {
@@ -944,4 +980,3 @@ button:hover {
     background-color: var(--primary);
     color: #ffffff;
 }
-
