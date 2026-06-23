@@ -283,6 +283,14 @@ body, html {
     pointer-events: auto;
     z-index: 2;
     touch-action: pan-x pan-y;
+    
+    -webkit-user-select: none; /* Safari / iOS */
+    -moz-user-select: none;    /* Firefox */
+    -ms-user-select: none;     /* IE/Edge */
+    user-select: none;         /* Standard-Browser */
+    
+    /* Speziell für Android/Chrome: Verhindert das blaue Aufblitzen und Menüs */
+    -webkit-touch-callout: none; 
 }
 
 /* When sidebar is open on mobile, disable canvas touch to allow sidebar scrolling */

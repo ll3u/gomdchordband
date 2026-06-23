@@ -14,6 +14,11 @@ let startScale = 1.0;
 let autoscrollFrameId = null;
 let lastScrollTime = 0;
 let scrollAccumulator = 0;
+/**
+ * pauses autoscroll when touch gesutres are used
+ * @type {boolean}
+ */
+let isTouchPaused = false; 
 
 let currentTransposeOffset = 0;
 let wakeLock = null;
@@ -352,7 +357,12 @@ function startAutoscroll() {
     const viewportHeight = scrollContainer.clientHeight;
 
     function scrollFrame(currentTime) {
-        if (!isScrolling) return;
+        if (!isScrolling || isTouchPaused) {
+            // Zeitstempel trotzdem aktualisieren, damit es nach dem Loslassen keinen "Sprung" macht
+            lastScrollTime = currentTime; 
+            autoscrollFrameId = requestAnimationFrame(scrollFrame);
+            return;
+        }
 
         const deltaTime = currentTime - lastScrollTime;
         lastScrollTime = currentTime;
@@ -414,7 +424,13 @@ window.addEventListener('resize', resizeCanvas);
 function startDrawing(e) {
     if (touchTimeout) clearTimeout(touchTimeout);
 
-    // DEBUG: Log which element is receiving touch
+    if (!isPenEnabled && e.touches && e.touches.length === 1) {
+        isTouchPaused = true; 
+
+        if (e.cancelable) {
+            e.preventDefault(); 
+        }
+    }
     
     // BEVOR ALLEM: Wenn Sidebar offen ist, alle Touch-Events durchlassen
     if (sidebar.classList.contains('open')) {
@@ -493,6 +509,7 @@ function draw(e) {
 
     // enable one-finger scroll
     if (!isPenEnabled && e.touches && e.touches.length === 1) {
+        isTouchPaused = true;
         e.preventDefault(); // Verhindert Ruckeln des Standard-Browsers
         const currentY = e.touches[0].clientY;
         const deltaY = touchStartScrollY - currentY; // Berechnet die Wisch-Distanz
@@ -548,6 +565,7 @@ function draw(e) {
 
 function stopDrawing(e) {
     if (touchTimeout) clearTimeout(touchTimeout);
+    isTouchPaused = false;
     
     
     if (e && e.touches && e.touches.length === 0) {
@@ -597,6 +615,7 @@ canvas.addEventListener('touchend', stopDrawing);
 let sidebarTouchStartY = 0;
 
 sidebar.addEventListener('touchstart', (e) => {
+    isTouchPaused = true;
     // Store initial touch position for manual scrolling
     if (e.touches && e.touches.length > 0) {
         sidebarTouchStartY = e.touches[0].clientY;
@@ -604,11 +623,13 @@ sidebar.addEventListener('touchstart', (e) => {
 }, {passive: true});
 
 sidebar.addEventListener('touchend', (e) => {
+    isTouchPaused = false;
+
     sidebarTouchStartY = 0;
 }, {passive: true});
 
 sidebar.addEventListener('touchmove', (e) => {
-    
+     isTouchPaused = true; 
     // Try explicit scrolling - prevent default and manually scroll
     if (e.cancelable && !e.defaultPrevented && e.touches && e.touches.length > 0) {
         e.preventDefault();
