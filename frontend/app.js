@@ -26,6 +26,8 @@ let wakeLock = null;
 let currentPlaylistFilter = "all";
 let playlistsCachedData = [];
 
+let selectedTheme = 'light';
+
 // Canvas State
 const canvas = document.getElementById('annotation-canvas');
 const ctx = canvas.getContext('2d');
@@ -42,6 +44,7 @@ const btnAutoscroll = document.getElementById('btn-autoscroll');
 const bpmSlider = document.getElementById('bpm-slider');
 const bpmValDisplay = document.getElementById('bpm-val-display');
 const wrapper = document.getElementById('wrapper');
+const themeCheckbox = document.querySelector('.theme-switch #checkbox');
 // Font size state
 const fontSizeSlider = document.getElementById('font-size-slider');
 const fontSizeDisplay = document.getElementById('font-size-display');
@@ -940,6 +943,11 @@ window.onload = () => {
         scrollContainer.addEventListener('scroll', updateProgressRing, { passive: true });
         updateProgressRing();
     }
+
+    // load stored theme
+    if (localStorage.getItem('settings.theme') === 'dark' && themeCheckbox) {
+        themeCheckbox.checked = true;
+    }
 };
 
 // Reagiert sofort, wenn man den Schieberegler bewegt
@@ -995,6 +1003,14 @@ document.getElementById('btn-undo').addEventListener('click', () => {
 
     // Das Canvas leeren und ohne den gelöschten Strich neu aufbauen
     redrawCanvas();
+});
+
+themeCheckbox.addEventListener('change', (e) => {
+    if (e.target.checked) {
+        localStorage.setItem('settings.theme', 'dark');
+    } else {
+        localStorage.setItem('settings.theme', 'light');
+    }
 });
 
 const btnCollapse = document.getElementById('btn-footer-collapse');

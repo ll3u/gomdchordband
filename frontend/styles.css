@@ -20,6 +20,8 @@
     --text-dark: #2f3542;
     --primary: #ff4757;
     --accent: #2ed573;
+    --text-even-darker: var(--bg-dark);
+    --text-meta: #57606f;
 }
 
 * {
@@ -271,7 +273,7 @@ body, html {
     font-family: -apple-system, sans-serif;
     margin-top: clamp(12px, 2.5vh, 22px);
     margin-bottom: clamp(8px, 1.5vh, 16px);
-    color: #1e222b;
+    color: var(--text-even-darker);
 }
 
 #annotation-canvas {
@@ -283,7 +285,7 @@ body, html {
     pointer-events: auto;
     z-index: 2;
     touch-action: pan-x pan-y;
-    
+
     -webkit-user-select: none; /* Safari / iOS */
     -moz-user-select: none;    /* Firefox */
     -ms-user-select: none;     /* IE/Edge */
@@ -544,7 +546,7 @@ body, html {
    ============================================ */
 
 button {
-    padding: 8px 14px;
+    padding: 8px 8px;
     border-radius: 6px;
     border: none;
     background: #2f3542;
@@ -632,7 +634,7 @@ button:hover {
 
 .song-content .annotation {
     font-weight: bold;
-    color: #57606f;
+    color: var(--text-meta);
     display: block !important;
     height: auto !important;
     min-height: 1.2em !important;
@@ -647,7 +649,7 @@ button:hover {
 .song-content .comment {
     font-weight: normal;
     font-style: italic;
-    color: #57606f;
+    color: var(--text-meta);
     display: block !important;
     height: auto !important;
     min-height: 1.2em !important;
@@ -668,7 +670,7 @@ button:hover {
 .song-content .lyrics {
     display: block !important;
     min-height: 1.2em !important;
-    color: var(--text-dark) !important;
+    color: var(--text-dark);
     white-space: pre !important;
     line-height: 1.4;  /* Match row line height */
     padding-top: 0.1em !important;
@@ -937,7 +939,7 @@ button:hover {
 .ug-header-meta {
     font-family: monospace;
     font-size: 14px;
-    color: #57606f;
+    color: var(--text-meta);
     margin-bottom: 6px;
 }
 
@@ -948,6 +950,7 @@ button:hover {
 
 #song-render {
   min-height: calc(85vh - 60px); 
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 
@@ -987,4 +990,98 @@ button:hover {
 .playlist-chip.playlist-chip-active {
     background-color: var(--primary);
     color: #ffffff;
+}
+
+
+/*
+ * theme switcher
+ */
+html:has(.theme-switch #checkbox:checked) #song-render {
+    background-color: #1f1f1f;
+    --text-dark: #e2e8f0;
+    --text-even-darker: #ffffff;
+    --text-meta: #94a3b8;
+
+    color:#fff;
+}
+
+/*
+ * theme switcher styling
+ */
+.theme-switch {
+    display: inline-block;
+    height: 36px;
+    position: relative;
+    width: 68px;
+}
+
+.theme-switch input[type="checkbox"] {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    opacity: 0;
+    cursor: pointer;
+    z-index: 10;
+    margin: 0;
+}
+
+.theme-switch .slider {
+    background-color: #2f3542; /* Hintergrund der Kapsel */
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    transition: background-color 0.4s ease;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 8px;
+    box-sizing: border-box;
+    border-radius: 6px;
+}
+
+/* Die halbtransparente Auswahl-Pille, die hin und her wandert */
+.theme-switch .slider::before {
+    background-color: rgba(255, 255, 255, 0.15);
+    content: "";
+    position: absolute;
+    top: 3px;
+    left: 5px;
+    height: 30px;
+    width: 30px;
+    border-radius: 6px;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1;
+}
+
+/* Pille im Darkmode nach rechts bewegen */
+.theme-switch input:checked + .slider::before {
+    transform: translateX(30px);
+    background-color: rgba(230, 230, 230, 0.2);
+}
+
+/* Erzwingt die korrekte Größe deiner neuen SVGs */
+.theme-switch .icon {
+    width: 22px;
+    height: 22px;
+    transition: all 0.3s ease;
+    z-index: 2;
+}
+
+
+/* Standard (Lightmode): Sonne aktiv, Mond gedimmt */
+.theme-switch .sun { 
+    color: var(--primary); 
+    opacity: 1; 
+}
+.theme-switch .moon { 
+    color: #959595; 
+    opacity: 0.4; 
+}
+
+/* Aktiv (Darkmode): Sonne gedimmt, Mond leuchtet gelb */
+.theme-switch input:checked + .slider .sun { 
+    color: #959595; 
+    opacity: 0.4; 
+}
+.theme-switch input:checked + .slider .moon { 
+    color: #ffffff; 
+    opacity: 1; 
 }
