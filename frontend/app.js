@@ -319,9 +319,13 @@ function updateProgressRing() {
     const scrollHeight = scrollContainer.scrollHeight - scrollContainer.clientHeight;
     const progress = Math.min(scrollTop / scrollHeight, 1);
 
-    // Circumference = 2 * PI * 26 = 163.36
-    const offset = 163.36 * (1 - progress);
-    progressRing.style.strokeDashoffset = offset;
+    const maxCalculatedValue = 565.48;
+    const offset = maxCalculatedValue - (progress) * maxCalculatedValue;
+
+    const progressRingFill = document.querySelector('.progress-ring-fill');
+    if (progressRingFill) {
+    progressRingFill.style.strokeDashoffset = `${offset}px`;
+}
 }
 
 // 3. AUTOMATISCHES ABSPIELEN & SCROLLEN (AUTOSCROLL)
