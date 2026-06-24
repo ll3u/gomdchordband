@@ -241,11 +241,11 @@ function renderChordSheet() {
         const divFormatter = new ChordSheetJS.HtmlDivFormatter();
         let mainBodyHtml = divFormatter.format(sharpSong);
 
-        mainBodyHtml = mainBodyHtml.replace(/<div class="chord">B([b#]?)([^<]*)<\/div>/g, (match, accidental, rest) => {
-          if (accidental === 'b') return `<div class="chord">B${rest}</div>`;
-          if (accidental === '#') return `<div class="chord">B#${rest}</div>`;
-          return `<div class="chord">H${rest}</div>`;
-        });
+       //mainBodyHtml = mainBodyHtml.replace(/<div class="chord">B([b#]?)([^<]*)<\/div>/g, (match, accidental, rest) => {
+       //  if (accidental === 'b') return `<div class="chord">B${rest}</div>`;
+       //  if (accidental === '#') return `<div class="chord">B#${rest}</div>`;
+       //  return `<div class="chord">H${rest}</div>`;
+       //});
 
         mainBodyHtml = mainBodyHtml.replace(/<div class="chord">([^<]+)<\/div>/g, (match, chordContent) => {
           const raisedNumbers = chordContent.replace(/(\([0-9]+\)|[0-9]+)/g, '<sup>$1</sup>');
