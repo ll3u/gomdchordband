@@ -12,8 +12,10 @@ const ASSETS_TO_CACHE = [
     '/sw-register.js',
     '/manifest.json',
     '/ChordSheetJS.bundle.min.js',
+    '/CanvasTextNote.js',
     '/fonts/roboto-mono-regular.woff2',
     '/fonts/roboto-mono-bold.woff2',
+    '/fonts/architects-daughter-v20-latin-regular.woff2',
     '/purify.min.js',
 ];
 

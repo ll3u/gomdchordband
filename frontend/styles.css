@@ -4,6 +4,14 @@
   font-weight: 400;
   src: url('/fonts/roboto-mono-regular.woff2') format('woff2');
 }
+@font-face {
+  font-display: swap;
+  font-family: 'Architects Daughter';
+  font-style: normal;
+  font-weight: 400;
+  src: url('/fonts/architects-daughter-v20-latin-regular.woff2') format('woff2');
+}
+
 
 @font-face {
   font-family: 'Roboto Mono';

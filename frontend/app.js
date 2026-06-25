@@ -50,6 +50,14 @@ const fontSizeSlider = document.getElementById('font-size-slider');
 const fontSizeDisplay = document.getElementById('font-size-display');
 const progressRing = document.querySelector('.progress-ring-fill');
 
+if (document.fonts) {
+    Promise.all([
+        document.fonts.load("18px 'Architects Daughter'"),
+    ]).then(() => {
+
+    });
+}
+
 // 1. SIDEBAR TOGGLE (Für Tablets)
 sidebarToggle.addEventListener('click', () => {
     if (window.innerWidth <= 1024) {
@@ -667,24 +675,51 @@ function redrawCanvas() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
     strokes.forEach(stroke => {
-        if (stroke.points.length < 2) return;
+        if (stroke.type === 'text') {
+            ctx.save();
+            ctx.globalCompositeOperation = 'source-over'; 
+            ctx.font = `${stroke.fontSize}px ${stroke.fontFamily}`;
+            
+            let textColor = stroke.color;
+            const currentTheme = localStorage.getItem('settings.theme');
+            
+            if (currentTheme === 'dark' && (stroke.color === '#111111' || stroke.color === '#000000')) {
+                textColor = '#ffffff'; 
+            } else if (currentTheme === 'light' && stroke.color === '#ffffff') {
+                textColor = '#111111';
+            }
+            ctx.fillStyle = textColor;
+            
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'middle';
+            
+            ctx.fillText(stroke.text, stroke.x + 12, stroke.y);
+            
+            ctx.restore();
+            return; 
+        }
+
+        // FALL B: Normalen Stiftstrich zeichnen
+        if (!stroke.points || stroke.points.length < 2) return;
+        
+        ctx.save();
+        ctx.globalCompositeOperation = stroke.tool === 'erase' ? 'destination-out' : 'source-over';
         ctx.beginPath();
-        ctx.strokeStyle = stroke.tool === 'erase' ? '#ffffff' : stroke.color;
+        ctx.strokeStyle = stroke.tool === 'erase' ? 'rgba(0,0,0,1)' : stroke.color; // Feste Alpha-Zuweisung für Eraser
         ctx.lineWidth = stroke.size;
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
-        
-        // Zeichne im "Destination-Out" Modus falls Radiergummi für echtes Freiradieren gewünscht
-        ctx.globalCompositeOperation = stroke.tool === 'erase' ? 'destination-out' : 'source-over';
         
         ctx.moveTo(stroke.points[0].x, stroke.points[0].y);
         for (let i = 1; i < stroke.points.length; i++) {
             ctx.lineTo(stroke.points[i].x, stroke.points[i].y);
         }
         ctx.stroke();
+        ctx.restore();
     });
-    ctx.globalCompositeOperation = 'source-over'; // Zurücksetzen
+    ctx.globalCompositeOperation = 'source-over';
 }
+
 function cleanUpErasedStrokes() {
     // Hole den letzten gezeichneten Strich (den Radierer-Pfad)
     const lastStroke = strokes[strokes.length - 1];
@@ -698,7 +733,36 @@ function cleanUpErasedStrokes() {
     // Filtere das strokes-Array: Behalte nur Pfade, die NICHT berührt wurden
     strokes = strokes.filter(stroke => {
         // Andere Radiergummis im Array ignorieren
-        if (stroke.tool === 'erase') return true; 
+        if (stroke.tool === 'erase') return true;
+
+        if (stroke.type === 'text') {
+            ctx.save();
+            ctx.font = `${stroke.fontSize}px ${stroke.fontFamily}`;
+            const textWidth = ctx.measureText(stroke.text).width;
+            const textHeight = stroke.fontSize; // Näherung für die Höhe
+            ctx.restore();
+
+            // Grenzen der zentrierten Textbox bestimmen
+            const left = stroke.x - textWidth / 2;
+            const right = stroke.x + textWidth / 2;
+            const top = stroke.y - textHeight / 2;
+            const bottom = stroke.y + textHeight / 2;
+
+            // Prüfen, ob mindestens ein aufgezeichneter Punkt des Radiergummis 
+            // (inklusive Dicke des Radierers) innerhalb dieser Box liegt
+            const textIsHit = lastStroke.points.some(point => {
+                const radius = lastStroke.size / 2;
+                return (
+                    point.x + radius >= left &&
+                    point.x - radius <= right &&
+                    point.y + radius >= top &&
+                    point.y - radius <= bottom
+                );
+            });
+
+            return !textIsHit; // Gibt false zurück, wenn getroffen -> Text wird gelöscht
+        }
+
         if (stroke.points.length < 2) return true;
 
         // Erstelle den Pfad des normalen Strichs im Hintergrund für die Prüfung
@@ -733,7 +797,14 @@ function saveCanvasData() {
 
 function loadCanvasData() {
     const data = localStorage.getItem(`canvas_${currentSongId}`);
-    strokes = data ? JSON.parse(data) : [];
+    const parsedData = data ? JSON.parse(data) : [];
+    
+    // Bestehendes Array leeren, ohne die Referenz zu zerstören
+    strokes.length = 0; 
+    
+    // Elemente sicher in das bestehende Array schieben
+    parsedData.forEach(item => strokes.push(item));
+    
     redrawCanvas();
 }
 
@@ -1015,6 +1086,7 @@ themeCheckbox.addEventListener('change', (e) => {
     } else {
         localStorage.setItem('settings.theme', 'light');
     }
+    redrawCanvas(); 
 });
 
 const btnCollapse = document.getElementById('btn-footer-collapse');
@@ -1120,3 +1192,35 @@ function initSetlists() {
         })
         .catch(err => console.error("fetch failed: setlist cache", err));
 }
+
+
+const tool = new CanvasTextNote(canvas, {
+    fontFamily: 'Architects Daughter',
+    fontSize: 18,
+    color: '#111111',
+    manageCanvasSize: false,   // you already size the canvas to match #song-render
+    onBurn: function(noteData) {
+    strokes.push({
+        type: 'text', 
+        text: noteData.text,
+        x: noteData.x,
+        y: noteData.y,
+        fontFamily: noteData.fontFamily,
+        fontSize: noteData.fontSize,
+        color: noteData.color
+    });
+
+    saveCanvasData();
+    redrawCanvas();
+}
+});
+
+document.getElementById('tool-text').addEventListener('click', () => {
+    isPenEnabled = false; 
+    
+    document.getElementById('tool-draw').classList.remove('active');
+    document.getElementById('tool-erase').classList.remove('active');
+
+    tool.activate();
+
+});
