@@ -43,6 +43,7 @@ type AppState struct {
 }
 
 func main() {
+	log.Printf("Startup chordBand %s\n", GetVersion())
 	// Configuration
 	songsDir := "./songs"
 	port := "8080"
@@ -151,7 +152,7 @@ func main() {
 
 	// Start server
 	addr := ":" + port
-	log.Printf("Band Chords PWA running on %s\n", addr)
+	log.Printf("running on %s\n", addr)
 	log.Printf("Songs directory: %s\n", songsDir)
 	log.Fatal(http.ListenAndServe(addr, nil))
 }

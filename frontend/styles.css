@@ -1177,3 +1177,12 @@ html:has(.theme-switch #checkbox:checked) #song-render {
     box-sizing: border-box;
     max-height: 2.6rem; 
 }
+
+
+.sidebar-header sup {
+    font-style: italic;
+    font-family: 'Roboto Mono';
+    font-size: .65rem;
+    color: var(--text-meta);
+    letter-spacing: -.1rem;
+}
