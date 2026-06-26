@@ -1,25 +1,6 @@
 /*!
- * CanvasTextNote — tiny vanilla JS library for dropping short text notes
- * onto a <canvas> (e.g. annotations on a sheet of music).
- *
- * Interaction model:
- *   1. Call activate() (e.g. from your own "Add Note" button) — a marker
- *      drops at a sensible default spot (center of what's visible), and a
- *      bar slides in at the TOP of the screen with a text input. Because
- *      the bar is pinned to the top, the on-screen keyboard never shifts
- *      or covers it. Crucially, nothing here ever listens for taps on the
- *      canvas itself, so it never competes with pen/eraser drawing,
- *      pinch-zoom, one-finger scroll, or autoscroll-pause logic that's
- *      already bound to canvas touch events.
- *   2. Type the note. A live ghost-preview shows exactly where the text
- *      will land, centered on the marker.
- *   3. Drag the marker (and only the marker) to fine-tune the position.
- *   4. Tap the checkmark (or hit Enter) to "burn" the text in via onBurn.
- *      Tap the X or Esc to cancel.
- *
- * No build step, no dependencies — just include this file with a
- * <script> tag and instantiate.
- *
+ * CanvasTextNote — tiny vanilla JS lib for dropping short text notes
+ * onto a <canvas>
  * Usage:
  *   const tool = new CanvasTextNote(document.getElementById('sheet'), {
  *     fontFamily: 'serif',
@@ -92,10 +73,7 @@
     // ---- public API ----------------------------------------------------
 
     // Places a new note marker at a sensible default position (the center
-    // of whatever's currently visible) and opens the input bar. Does NOT
-    // listen for taps on the canvas — your canvas already has its own
-    // pen/eraser/zoom/scroll touch handling, and this avoids any conflict
-    // with that entirely.
+    // of whatever's currently visible) and opens the input bar.
     activate() {
       if (this.note) return; // one at a time
       const { x, y } = this._defaultPlacementPoint();
@@ -219,7 +197,7 @@
         marginLeft: '-9px',
         marginTop: '-9px',
         borderRadius: '50%',
-        background: 'rgba(33,150,243,0.85)',
+        background: 'rgba(30,144,255,0.85)',
         border: '2px solid #fff',
         boxShadow: '0 1px 3px rgba(0,0,0,0.4)',
         zIndex: '1000',
@@ -231,14 +209,14 @@
         position: 'absolute',
         left: x + 'px',
         top: y + 'px',
-        transform: 'translate(0%, -50%)',
+        transform: 'translate(16px, -50%)',
         whiteSpace: 'pre',
         pointerEvents: 'none',
         fontFamily: this.fontFamily,
         fontSize: this.fontSize + 'px',
         color: this.color,
         opacity: '0.85',
-        textShadow: '0 0 3px #fff, 0 0 3px #fff, 0 0 5px #fff',
+        textShadow: '0 0 1px #999, 0 0 2px #999, 0 0 3px #999',
         zIndex: '999'
       });
 
@@ -246,53 +224,27 @@
       this.stage.appendChild(marker);
 
       // --- fixed bar pinned to the TOP of the viewport (or your container) ---
-      const bar = el('div', {
-        position: 'fixed',
-        top: this.barTopOffset + 'px',
-        left: '0',
-        right: '0',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '6px',
-        padding: '8px',
-        paddingTop: this.barTopOffset === 0 ? 'calc(8px + env(safe-area-inset-top, 0px))' : '8px',
-        background: '#15181f',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.25)',
-        zIndex: '2000',
-        boxSizing: 'border-box'
-      });
+      const bar = el('div', {});
 
-      const btnBase = {
-        flex: '0 0 auto',
-        width: '36px',
-        height: '36px',
-        border: 'none',
-        borderRadius: '6px',
-        lineHeight: '1',
-        cursor: 'pointer',
-        touchAction: 'none',
-        padding: '8px'
-      }
+      const btnBase = {}
 
-      const cancelBtn = el('button', Object.assign({}, btnBase, {  color: '#ff4757'  }));
+      const cancelBtn = el('button', Object.assign({}, btnBase, { }));
       cancelBtn.type = 'button';
       cancelBtn.setAttribute('aria-label', 'Cancel');
       cancelBtn.innerHTML = `
         <svg class="mdi-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-            <path d="M0 0h24v24H0z" fill="none" />
-            <g fill="none" stroke="currentColor" stroke-width="1.5">
-              <path d="M2 12c0-4.714 0-7.071 1.464-8.536C4.93 2 7.286 2 12 2s7.071 0 8.535 1.464C22 4.93 22 7.286 22 12s0 7.071-1.465 8.535C19.072 22 16.714 22 12 22s-7.071 0-8.536-1.465C2 19.072 2 16.714 2 12Z" opacity=".5" />
-              <path stroke-linecap="round" d="m14.5 9.5l-5 5m0-5l5 5" />
-            </g>
+          <path d="M0 0h24v24H0z" fill="none" />
+          <path fill="currentColor" d="M12 22c-4.714 0-7.071 0-8.536-1.465C2 19.072 2 16.714 2 12s0-7.071 1.464-8.536C4.93 2 7.286 2 12 2s7.071 0 8.535 1.464C22 4.93 22 7.286 22 12s0 7.071-1.465 8.535C19.072 22 16.714 22 12 22" opacity=".5" />
+          <path fill="currentColor" d="M8.97 8.97a.75.75 0 0 1 1.06 0L12 10.94l1.97-1.97a.75.75 0 1 1 1.06 1.06L13.06 12l1.97 1.97a.75.75 0 1 1-1.06 1.06L12 13.06l-1.97 1.97a.75.75 0 0 1-1.06-1.06L10.94 12l-1.97-1.97a.75.75 0 0 1 0-1.06" />
         </svg>
       `;
-      cancelBtn.classList.add('btn-tool'); 
+      cancelBtn.classList.add('btn-tool', 'cancel'); 
 
       const minusBtn = el('button', Object.assign({}, btnBase, {  }));
       minusBtn.type = 'button';
       minusBtn.setAttribute('aria-label', 'Smaller text');
       minusBtn.innerHTML = `
-        <svg class="mdi-icon" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24">
+        <svg class="mdi-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
           <path d="M0 0h24v24H0z" fill="none" />
           <path fill="currentColor" fill-rule="evenodd" d="M17.82 19.7c-.09-1.094.816-2.008 1.9-1.918c.189.016.414.085.643.154l.067.02l.06.018c.21.064.42.127.58.213a1.786 1.786 0 0 1 .637 2.549c-.1.152-.255.308-.41.464l-.045.045l-.044.045c-.155.157-.31.313-.46.414a1.754 1.754 0 0 1-2.527-.643c-.086-.161-.148-.373-.211-.585l-.018-.06l-.02-.068c-.07-.231-.137-.458-.152-.648" clip-rule="evenodd" />
           <path fill="currentColor" d="M11.157 20.313a9.157 9.157 0 1 0 0-18.313a9.157 9.157 0 0 0 0 18.313" opacity=".5" />
@@ -305,7 +257,7 @@
       plusBtn.type = 'button';
       plusBtn.setAttribute('aria-label', 'Bigger text');
       plusBtn.innerHTML = `
-        <svg class="mdi-icon" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24">
+        <svg class="mdi-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
           <path d="M0 0h24v24H0z" fill="none" />
           <path fill="currentColor" fill-rule="evenodd" d="M17.82 19.7c-.09-1.094.816-2.008 1.9-1.918c.189.016.414.085.643.154l.067.02l.06.018c.21.064.42.127.58.213a1.786 1.786 0 0 1 .637 2.549c-.1.152-.255.308-.41.464l-.045.045l-.044.045c-.155.157-.31.313-.46.414a1.754 1.754 0 0 1-2.527-.643c-.086-.161-.148-.373-.211-.585l-.018-.06l-.02-.068c-.07-.231-.137-.458-.152-.648" clip-rule="evenodd" />
           <path fill="currentColor" d="M11.157 20.313a9.157 9.157 0 1 0 0-18.313a9.157 9.157 0 0 0 0 18.313" opacity=".5" />
@@ -332,19 +284,17 @@
       input.setAttribute('spellcheck', 'false');
       input.setAttribute('enterkeyhint', 'done');
 
-      const confirmBtn = el('button', Object.assign({}, btnBase, { color: '#2ed573' }));
+      const confirmBtn = el('button', Object.assign({}, btnBase, { }));
       confirmBtn.type = 'button';
       confirmBtn.setAttribute('aria-label', 'Confirm and place note');
       confirmBtn.innerHTML = `
-        <svg class="mdi-icon" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24">
+        <svg class="mdi-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
           <path d="M0 0h24v24H0z" fill="none" />
-          <g fill="none" stroke="currentColor" stroke-width="1.5">
-            <path d="M2 12c0-4.714 0-7.071 1.464-8.536C4.93 2 7.286 2 12 2s7.071 0 8.535 1.464C22 4.93 22 7.286 22 12s0 7.071-1.465 8.535C19.072 22 16.714 22 12 22s-7.071 0-8.536-1.465C2 19.072 2 16.714 2 12Z" opacity=".5" />
-            <path stroke-linecap="round" stroke-linejoin="round" d="m8.5 12.5l2 2l5-5" />
-          </g>
+          <path fill="currentColor" d="M12 22c-4.714 0-7.071 0-8.536-1.465C2 19.072 2 16.714 2 12s0-7.071 1.464-8.536C4.93 2 7.286 2 12 2s7.071 0 8.535 1.464C22 4.93 22 7.286 22 12s0 7.071-1.465 8.535C19.072 22 16.714 22 12 22" opacity=".5" />
+          <path fill="currentColor" d="M16.03 8.97a.75.75 0 0 1 0 1.06l-5 5a.75.75 0 0 1-1.06 0l-2-2a.75.75 0 1 1 1.06-1.06l1.47 1.47l4.47-4.47a.75.75 0 0 1 1.06 0" />
         </svg>
       `;
-      confirmBtn.classList.add('btn-tool'); 
+      confirmBtn.classList.add('btn-tool', 'confirm'); 
 
       const form = el('form', { display: 'flex', flex: '1 1 auto', gap: '6px', alignItems: 'center', minWidth: '0' });
       form.appendChild(input);
@@ -354,6 +304,8 @@
       bar.appendChild(form);
       bar.appendChild(plusBtn);
       bar.appendChild(confirmBtn);
+      
+      bar.setAttribute('id', 'ctn-wrapper');
       this.barContainer.appendChild(bar);
 
       const note = { x, y, marker, preview, bar, input };

@@ -239,8 +239,6 @@ function renderChordSheet() {
         let baseSong = transposedSong ?? cpSong;
         const sharpSong = baseSong.useModifier('#');
 
-        console.log(sharpSong.metadata);
-
         let headerHtml = parseUgHeader(sharpSong.metadata);
         sharpSong.metadata.set('title', '');
         sharpSong.metadata.set('subtitle', ''); 
@@ -679,21 +677,14 @@ function redrawCanvas() {
             ctx.save();
             ctx.globalCompositeOperation = 'source-over'; 
             ctx.font = `${stroke.fontSize}px ${stroke.fontFamily}`;
-            
-            let textColor = stroke.color;
-            const currentTheme = localStorage.getItem('settings.theme');
-            
-            if (currentTheme === 'dark' && (stroke.color === '#111111' || stroke.color === '#000000')) {
-                textColor = '#ffffff'; 
-            } else if (currentTheme === 'light' && stroke.color === '#ffffff') {
-                textColor = '#111111';
-            }
-            ctx.fillStyle = textColor;
+        
+            ctx.fillStyle = '#1e90ff';
             
             ctx.textAlign = 'left';
             ctx.textBaseline = 'middle';
             
-            ctx.fillText(stroke.text, stroke.x + 12, stroke.y);
+            // reposition on "burn" based on `translate(16px, -50%)'` from CanvasTextNote.js
+            ctx.fillText(stroke.text, stroke.x +16, stroke.y + 3.5);
             
             ctx.restore();
             return; 
@@ -833,6 +824,9 @@ function releaseWakeLock() {
 
 // Toolbar Werkzeuge steuern
 document.getElementById('tool-draw').addEventListener('click', () => {
+    if (tool.isPlacing()) {
+        tool.deactivate()
+    }
     if (isPenEnabled && currentTool === 'draw') {
         isPenEnabled = false;
         document.getElementById('tool-draw').classList.remove('active');
@@ -841,10 +835,14 @@ document.getElementById('tool-draw').addEventListener('click', () => {
         isPenEnabled = true;
         document.getElementById('tool-draw').classList.add('active');
         document.getElementById('tool-erase').classList.remove('active');
+        document.getElementById('tool-text').classList.remove('active');
     }
 });
 
 document.getElementById('tool-erase').addEventListener('click', () => {
+    if (tool.isPlacing()) {
+        tool.deactivate()
+    }
     if (isPenEnabled && currentTool === 'erase') {
         isPenEnabled = false;
         document.getElementById('tool-erase').classList.remove('active');
@@ -853,6 +851,7 @@ document.getElementById('tool-erase').addEventListener('click', () => {
         isPenEnabled = true;
         document.getElementById('tool-erase').classList.add('active');
         document.getElementById('tool-draw').classList.remove('active');
+        document.getElementById('tool-text').classList.remove('active');
     }
 });
 
@@ -1197,8 +1196,8 @@ function initSetlists() {
 const tool = new CanvasTextNote(canvas, {
     fontFamily: 'Architects Daughter',
     fontSize: 18,
-    color: '#111111',
-    manageCanvasSize: false,   // you already size the canvas to match #song-render
+    color: '#1e90ff',
+    manageCanvasSize: false,
     onBurn: function(noteData) {
     strokes.push({
         type: 'text', 
@@ -1209,18 +1208,24 @@ const tool = new CanvasTextNote(canvas, {
         fontSize: noteData.fontSize,
         color: noteData.color
     });
-
     saveCanvasData();
     redrawCanvas();
+
+    document.getElementById('tool-text').classList.remove('active');
 }
 });
 
 document.getElementById('tool-text').addEventListener('click', () => {
+    if (document.getElementById('ctn-wrapper') !== null) {
+        tool.deactivate();
+        document.getElementById('tool-text').classList.remove('active');
+        return;
+    }
     isPenEnabled = false; 
     
     document.getElementById('tool-draw').classList.remove('active');
     document.getElementById('tool-erase').classList.remove('active');
+    document.getElementById('tool-text').classList.add('active');
 
     tool.activate();
-
 });

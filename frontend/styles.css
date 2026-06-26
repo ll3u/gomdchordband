@@ -1132,3 +1132,48 @@ html:has(.theme-switch #checkbox:checked) #song-render {
     color: #ffffff; 
     opacity: 1; 
 }
+
+
+#ctn-wrapper .btn-tool.cancel {
+    background-color: var(--primary);
+}
+
+#ctn-wrapper .btn-tool.confirm {
+    background-color: var(--accent);
+}
+
+
+#ctn-wrapper .btn-tool {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px;
+  box-sizing: border-box;
+}
+
+#ctn-wrapper .btn-tool .mdi-icon {
+  width: 100%;    
+  height: 100%;   
+  max-width: 28px;
+  max-height: 28px;
+  display: block;
+}
+
+#ctn-wrapper {
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    right: 0px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding-top: calc(8px + env(safe-area-inset-top, 0px));
+    padding-right: 8px;
+    padding-bottom: 8px;
+    padding-left: 8px;
+    background: rgb(21, 24, 31);
+    box-shadow: rgba(0, 0, 0, 0.25) 0px 2px 8px;
+    z-index: 2000;
+    box-sizing: border-box;
+    max-height: 2.6rem; 
+}
