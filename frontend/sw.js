@@ -26,8 +26,8 @@ self.addEventListener('install', (event) => {
       .then((cache) => {
         return cache.addAll(ASSETS_TO_CACHE);
       })
-      .then(() => self.skipWaiting()) // NEU: Zwingt den SW, sofort aktiv zu werden!
   );
+  self.skipWaiting();
 });
 
 // Fetch: Serve from cache or fetch and cache
@@ -145,8 +145,9 @@ self.addEventListener('activate', (event) => {
           }
         })
       );
-    }).then(() => self.clients.claim()) // NEU: Übernimmt sofort die Kontrolle über alle offenen Tabs!
+    })
   );
+  self.clients.claim();
 });
 
 // Message: Allow clearing cache from client
@@ -161,6 +162,9 @@ self.addEventListener('message', (event) => {
                 );
             })
         );
+    }
+    if (event.data?.type === 'SKIP_WAITING') {
+        self.skipWaiting();  // ← ADD THIS (responds to the postMessage above)
     }
 });
 

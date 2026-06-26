@@ -1,28 +1,20 @@
 // Register Service Worker
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-        // KORRIGIERT: Der Zeitstempel bricht das Go-HTTP-Caching beim Registrieren auf
-        navigator.serviceWorker.register(`/sw.js?t=${Date.now()}`)
+        navigator.serviceWorker.register('/sw.js')
             .then((registration) => {
                 console.log('ServiceWorker registration successful');
-
-                // NEU: Zwingt den Browser bei jedem App-Start, die sw.js im Hintergrund zu prüfen
                 registration.update();
 
-                // Check for updates (Deine originale Update-Logik, vollkommen unangetastet)
                 registration.addEventListener('updatefound', () => {
                     console.log('New ServiceWorker found, updating...');
                     const newWorker = registration.installing;
 
                     newWorker.addEventListener('statechange', () => {
-                        if (newWorker.state === 'installed') {
-                            console.log('New ServiceWorker installed');
-                            // Check if there's an existing controller
-                            if (navigator.serviceWorker.controller) {
-                                console.log('New ServiceWorker available, reloading...');
-                                // You might want to show a notification here
-                                // window.location.reload();
-                            }
+                        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                            console.log('New ServiceWorker available, activating...');
+                            // 1. Tell the waiting SW to activate now
+                            newWorker.postMessage({ type: 'SKIP_WAITING' });
                         }
                     });
                 });
@@ -30,6 +22,14 @@ if ('serviceWorker' in navigator) {
             .catch((error) => {
                 console.error('ServiceWorker registration failed:', error);
             });
+
+        // 2. When the new SW takes control, reload the page
+        let refreshing = false;
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+            if (refreshing) return;
+            refreshing = true;
+            location.reload();
+        });
     });
 }
 
