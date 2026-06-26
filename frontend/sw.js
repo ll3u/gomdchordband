@@ -119,7 +119,7 @@ async function handleApiRequest(event) {
       });
     }
     // Handle specific setlist requests with error fallback
-    if (url.pathname.startsWith('api/setlists')) {
+    if (url.pathname.startsWith('/api/setlists')) {
       const fallback = {
         id: "error",
         title: "Offline-Fehler",
