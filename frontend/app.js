@@ -35,6 +35,9 @@ let isDrawing = false;
 let currentTool = 'draw'; // 'draw' oder 'erase'
 let isPenEnabled = false;
 let strokes = []; // Speichert Linien lokal
+// Color picker
+const colorPicker = document.getElementById('color-picker');
+const colorIcon = document.getElementById('svg-color-icon');
 
 // DOM Elemente
 const sidebar = document.getElementById('sidebar');
@@ -985,14 +988,13 @@ window.onload = () => {
         });
     }
 
-    const colorPicker = document.getElementById('color-picker');
-    const colorIcon = document.getElementById('svg-color-icon');
-    
+   
+    // bind colorpicker event
     if (colorPicker && colorIcon) {
         colorPicker.addEventListener('input', (e) => {
-            // Ändert die CSS-Füllfarbe des SVGs in Echtzeit beim Schieben im Farbrad
-            colorIcon.style.fill = e.target.value;
+            applyColor(e.target.value);
         });
+        applyColor(colorPicker.value);
     }
 
     // Handle fullscreen changes (e.g., user presses Esc)
@@ -1229,3 +1231,10 @@ document.getElementById('tool-text').addEventListener('click', () => {
 
     tool.activate();
 });
+
+
+if(true) {
+    function applyColor(color) {
+        colorIcon.style.fill = color;
+    }
+}
