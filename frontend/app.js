@@ -368,7 +368,7 @@ function startAutoscroll() {
     lastScrollTime = performance.now();
     
     // ===== FIXED DELAY =====
-    const INTRO_DELAY_MS = 1500;
+    const INTRO_DELAY_MS = 1647;
     const actualStartTime = performance.now() + INTRO_DELAY_MS;
     let delayEnded = false;
     // ======================
