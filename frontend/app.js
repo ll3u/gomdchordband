@@ -350,57 +350,107 @@ function toggleAutoscroll() {
 function startAutoscroll() {
     if (!currentSongId) return;
     
-    // ABSICHERUNG GEGEN NOCK-ON-EFFEKT: Falls bereits eine Schleife aktiv ist, 
-    // brechen wir sie starr ab, bevor wir eine neue starten. Das killt das Rasen!
     if (autoscrollFrameId) {
         cancelAnimationFrame(autoscrollFrameId);
     }
     
     isScrolling = true;
+    
     if (btnAutoscroll) {
         const playIcon = document.getElementById('svg-play-icon');
         const pauseIcon = document.getElementById('svg-pause-icon');
-        
         if (playIcon) playIcon.style.display = 'none';
         if (pauseIcon) pauseIcon.style.display = 'inline-block';
-
         btnAutoscroll.classList.add('active');
     }
 
-    // Speicher zurücksetzen
     scrollAccumulator = 0;
     lastScrollTime = performance.now();
-    const viewportHeight = scrollContainer.clientHeight;
+    
+    // ===== FIXED DELAY =====
+    const INTRO_DELAY_MS = 1500;
+    const actualStartTime = performance.now() + INTRO_DELAY_MS;
+    let delayEnded = false;
+    // ======================
+    
+    // ===== TUNABLE VALUES =====
+    const MIN_BPM = 40;
+    const MAX_BPM = 150;
+    const MIN_PCT_PER_SEC = 0.3;
+    const MAX_PCT_PER_SEC = 4.0;
+    // ===========================
+    
+    let wasTouchPaused = isTouchPaused;
 
     function scrollFrame(currentTime) {
-        if (!isScrolling || isTouchPaused) {
-            // Zeitstempel trotzdem aktualisieren, damit es nach dem Loslassen keinen "Sprung" macht
+        if (!isScrolling) {
+            return;
+        }
+        
+        // ===== DETECT TOUCH RESUME =====
+        const touchJustResumed = wasTouchPaused && !isTouchPaused;
+        if (touchJustResumed) {
+            lastScrollTime = currentTime;
+            wasTouchPaused = false;
+            autoscrollFrameId = requestAnimationFrame(scrollFrame);
+            return;
+        }
+        wasTouchPaused = isTouchPaused;
+        // ===============================
+        
+        if (isTouchPaused) {
             lastScrollTime = currentTime; 
             autoscrollFrameId = requestAnimationFrame(scrollFrame);
             return;
         }
-
+        
+        // ===== WAIT FOR DELAY =====
+        if (currentTime < actualStartTime) {
+            lastScrollTime = currentTime;
+            autoscrollFrameId = requestAnimationFrame(scrollFrame);
+            return;
+        }
+        
+        if (!delayEnded) {
+            delayEnded = true;
+            lastScrollTime = currentTime;
+            autoscrollFrameId = requestAnimationFrame(scrollFrame);
+            return;
+        }
+        // ===========================
+        
         const deltaTime = currentTime - lastScrollTime;
         lastScrollTime = currentTime;
+        
+        const scrollableHeight = scrollContainer.scrollHeight - scrollContainer.clientHeight;
+        
+        if (scrollableHeight <= 0) {
+            autoscrollFrameId = requestAnimationFrame(scrollFrame);
+            return;
+        }
+        
+        const bpmRange = MAX_BPM - MIN_BPM;
+        const pctRange = MAX_PCT_PER_SEC - MIN_PCT_PER_SEC;
+        
+        const normalizedBpm = Math.max(0, Math.min(1, (currentBpm - MIN_BPM) / bpmRange));
+        const curve = 1.5;
+        const curvedFactor = Math.pow(normalizedBpm, curve);
+        
+        const pctPerSec = MIN_PCT_PER_SEC + curvedFactor * pctRange;
+        const pxPerSec = (pctPerSec / 100) * scrollableHeight;
+        const fractionalStep = (pxPerSec / 1000) * deltaTime;
 
-        // Basis-Geschwindigkeit berechnen (BPM-basiert)
-        const dynamicStep = viewportHeight * currentBpm * 0.00000025;
-        const fractionalStep = dynamicStep * deltaTime;
-
-        // Wir addieren den Bruchteil auf unseren Speicher auf
         scrollAccumulator += fractionalStep;
 
-        // BEHOBEN: Sobald sich 1 oder mehr ganze Pixel angesammelt haben,
-        // scrollen wir um exakt diese Zahl. Dadurch stoppt das Scrollen bei 40 nie wieder!
         if (scrollAccumulator >= 1) {
             const pixelsToScroll = Math.floor(scrollAccumulator);
             scrollContainer.scrollBy(0, pixelsToScroll);
-            scrollAccumulator -= pixelsToScroll; // Rest im Speicher belassen
+            scrollAccumulator -= pixelsToScroll;
         }
 
         autoscrollFrameId = requestAnimationFrame(scrollFrame);
     }
-
+    
     autoscrollFrameId = requestAnimationFrame(scrollFrame);
 }
 
@@ -1040,10 +1090,11 @@ bpmSlider.addEventListener('input', (e) => {
     }
     
     // Falls das Autoscroll läuft, Tempo sofort ohne Pause anpassen
+    /*
     if (isScrolling) {
         clearInterval(autoscrollInterval);
         startAutoscroll(); 
-    }
+    }*/
 });
 
 // Verhindert, dass die Canvas-Logik das Sliden auf Android blockiert
