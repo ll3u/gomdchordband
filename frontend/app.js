@@ -621,11 +621,14 @@ function draw(e) {
     e.preventDefault();
 
     const coords = getCoords(e);
-
     const currentStroke = strokes[strokes.length - 1];
+
     if (currentStroke && currentStroke.points) {
         currentStroke.points.push({ x: coords.x, y: coords.y });
-        redrawCanvas();
+        
+        if (currentStroke.points.length > 1) {
+            redrawCanvas();
+        }
     }
 }
 
@@ -754,11 +757,42 @@ function redrawCanvas() {
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
         
-        ctx.moveTo(stroke.points[0].x, stroke.points[0].y);
-        for (let i = 1; i < stroke.points.length; i++) {
-            ctx.lineTo(stroke.points[i].x, stroke.points[i].y);
+        if (stroke.points.length < 3) {
+            ctx.beginPath();
+            ctx.lineWidth = stroke.size;
+            ctx.moveTo(stroke.points[0].x, stroke.points[0].y);
+            ctx.lineTo(stroke.points[1].x, stroke.points[1].y);
+            ctx.stroke();
+        } else {
+            for (let i = 1; i < stroke.points.length - 1; i++) {
+                const startPoint = stroke.points[i - 1];
+                const currentPoint = stroke.points[i];
+                const nextPoint = stroke.points[i + 1];
+                const controlX = currentPoint.x;
+                const controlY = currentPoint.y;
+                const endX = (currentPoint.x + nextPoint.x) / 2;
+                const endY = (currentPoint.y + nextPoint.y) / 2;
+                const progress = i / (stroke.points.length - 1);
+                const minWidth = stroke.size * 0.4; 
+                const maxWidth = stroke.size;
+                const factor = 4 * Math.pow(progress - 0.5, 2); 
+                const dynamicWidth = minWidth + (maxWidth - minWidth) * factor;
+
+                ctx.beginPath();
+                ctx.lineWidth = dynamicWidth;
+
+                if (i === 1) {
+                    ctx.moveTo(startPoint.x, startPoint.y);
+                } else {
+                    const prevEndX = (startPoint.x + currentPoint.x) / 2;
+                    const prevEndY = (startPoint.y + currentPoint.y) / 2;
+                    ctx.moveTo(prevEndX, prevEndY);
+                }
+
+                ctx.quadraticCurveTo(controlX, controlY, endX, endY);
+                ctx.stroke();
+            }
         }
-        ctx.stroke();
         ctx.restore();
     });
     ctx.globalCompositeOperation = 'source-over';
