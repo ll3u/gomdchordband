@@ -270,7 +270,7 @@ body, html {
 
 /* Song Content */
 .song-content {
-    padding: 1.0em 1.2em;
+    padding: 1.0em 1.2em 3.25rem 1.2em;
     font-family: "Roboto Mono", "Courier New", monospace, monospace;
     font-size: 18px;
     line-height: 1.6;
