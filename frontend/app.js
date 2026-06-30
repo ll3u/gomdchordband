@@ -247,7 +247,7 @@ function renderChordSheet() {
         sharpSong.metadata.set('subtitle', ''); 
         sharpSong.metadata.set('album', ''); 
 
-        const divFormatter = new ChordSheetJS.HtmlDivFormatter();
+        const divFormatter = new ChordSheetJS.HtmlDivFormatter({ normalizeChords: false });
         let mainBodyHtml = divFormatter.format(sharpSong);
 
        //mainBodyHtml = mainBodyHtml.replace(/<div class="chord">B([b#]?)([^<]*)<\/div>/g, (match, accidental, rest) => {
