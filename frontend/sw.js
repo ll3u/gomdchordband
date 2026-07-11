@@ -17,6 +17,7 @@ const ASSETS_TO_CACHE = [
     '/fonts/roboto-mono-bold.woff2',
     '/fonts/architects-daughter-v20-latin-regular.woff2',
     '/purify.min.js',
+    '/MidiControl.js',
 ];
 
 // Install: Cache all static assets

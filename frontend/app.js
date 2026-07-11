@@ -1323,3 +1323,45 @@ if(true) {
         colorIcon.style.fill = color;
     }
 }
+
+// scroll up intervall for long press left pedal
+let pedalUpScrollInterval = null; 
+// initialize MIDI controller
+const midi = new MidiControl({
+    triggerBtn: btnAutoscroll,
+    onLongPress: (data) => {
+        // right button:: pauses the autoscroll while holding down the pedal
+        if (data.note === midi.config.slots[1].note) {
+            if (typeof isTouchPaused !== 'undefined') {
+                isTouchPaused = true; 
+            }
+        // left button:: scroll up while holding down the pedal
+        }else if (data.note === midi.config.slots[0].note) {
+            if (pedalUpScrollInterval) clearInterval(pedalUpScrollInterval);
+            pedalUpScrollInterval = setInterval(() => {
+                if (typeof scrollContainer !== 'undefined' && scrollContainer) {
+                    scrollContainer.scrollBy(0, -15); // Negativ = Nach oben wandern
+                }
+            }, 25);
+        }
+    },
+    onRelease: (data) => {
+        // right button:: resume autoscroll
+        if (data.note === midi.config.slots[1].note) {
+            if (typeof isTouchPaused !== 'undefined') {
+                isTouchPaused = false; 
+            }
+        // left button:: cancel scrolling up
+        }else if (data.note === midi.config.slots[0].note) {
+            if (pedalUpScrollInterval) {
+                clearInterval(pedalUpScrollInterval);
+                pedalUpScrollInterval = null;
+            }
+        }
+    }
+});
+
+const btnMidiSettings = document.getElementById('btn-midicontrol');
+btnMidiSettings.addEventListener('click', () => {
+    midi.openDialog();
+});
