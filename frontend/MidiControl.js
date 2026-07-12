@@ -60,7 +60,7 @@ class MidiControl {
         };
 
         this.buildUI();
-        this.init();
+        // moved `this.init();` to openDialog()
     }
 
     saveConfig() {
@@ -359,6 +359,10 @@ class MidiControl {
     }
 
     openDialog() {
+        // request MIDI only access when dialog is opened
+        if (!this.midiAccess) {
+            this.init();
+        }
         this.elements.overlay.classList.add('open');
     }
 
