@@ -44,7 +44,8 @@ class MidiControl {
         this.longPressTriggered = false;
         // track which slot is currently long-pressing
         this.activeLongPressSlot = null; 
-        this.LONG_PRESS_DELAY = 350;
+        this.LONG_PRESS_DELAY = options.longPressDelay ?? 350;
+        this.LEARN_TIMEOUT = options.learnTimeout ?? 10000;
         // track which slot is currently learning (0 or 1)
         this.currentLearningIndex = null;
 
@@ -219,6 +220,9 @@ class MidiControl {
             const device = await navigator.bluetooth.requestDevice({
                 filters: [{ services: [MIDI_SERVICE_UUID] }]
             });
+            device.addEventListener('gattserverdisconnected', () => {
+                this.elements.statuses[0].textContent = 'BLE disconnected';
+            });
 
             this.elements.statuses[0].textContent = 'Connecting BLE...';
             const server = await device.gatt.connect();
@@ -340,6 +344,10 @@ class MidiControl {
         const select = document.createElement('select');
         select.className = 'mc-select';
         dialog.appendChild(select);
+        select.addEventListener('change', (e) => {
+            this.config.deviceId = e.target.value || null;
+            this.saveConfig();
+        });
         this.elements.select = select;
 
         // Backward compatibility
@@ -383,6 +391,7 @@ class MidiControl {
 
     populateSelect() {
         if (!this.elements.select) return;
+        this.elements.select.innerHTML = '';
         this.inputs.forEach((input, id) => {
             const opt = document.createElement('option');
             opt.value = id;
@@ -390,11 +399,6 @@ class MidiControl {
             if (id === this.config.deviceId) opt.selected = true;
             this.elements.select.appendChild(opt);
         });
-        
-        this.elements.select.onchange = (e) => {
-            this.config.deviceId = e.target.value || null;
-            this.saveConfig();
-        };
     }
 
     startLearning(index) {
@@ -416,7 +420,7 @@ class MidiControl {
                 this.elements.statuses[index].textContent = 'Learn cancelled (timeout)';
                 this.updateStatus();
             }
-        }, 10000);
+        }, this.LEARN_TIMEOUT);
     }
 
     updateStatus() {
