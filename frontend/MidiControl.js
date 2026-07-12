@@ -211,7 +211,7 @@ class MidiControl {
         const [status, data1, data2] = event.data;
         this.processIncomingMidi(event.target.id, status, data1, data2);
     }
-
+    
     async connectBluetoothMidi() {
         const MIDI_SERVICE_UUID = "03b19c24-b6a4-11e2-91e5-0002a5d5c51b";
         this.elements.statuses[0].textContent = 'Scanning BLE...';
@@ -219,9 +219,6 @@ class MidiControl {
         try {
             const device = await navigator.bluetooth.requestDevice({
                 filters: [{ services: [MIDI_SERVICE_UUID] }]
-            });
-            device.addEventListener('gattserverdisconnected', () => {
-                this.elements.statuses[0].textContent = 'BLE disconnected';
             });
 
             this.elements.statuses[0].textContent = 'Connecting BLE...';
@@ -257,6 +254,10 @@ class MidiControl {
 
             this.elements.statuses[0].textContent = 'BLE connected!';
             this.updateStatus();
+
+            device.addEventListener('gattserverdisconnected', () => {
+                this.elements.statuses[0].textContent = 'BLE disconnected';
+            });
 
         } catch (err) {
             console.error(err);
