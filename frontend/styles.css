@@ -28,6 +28,7 @@
     --text-dark: #2f3542;
     --primary: #ff4757;
     --accent: #2ed573;
+    --accent-rgb: 46, 213, 115;
     --text-even-darker: var(--bg-dark);
     --text-meta: #57606f;
     --wrapper-size: clamp(72px, 16vw, 120px);
@@ -1004,6 +1005,7 @@ button:hover {
 #song-render {
   min-height: calc(85vh - 60px); 
   transition: background-color 0.3s ease, color 0.3s ease;
+  counter-reset: singer-page-counter 1;
 }
 
 
@@ -1357,36 +1359,56 @@ html:has(.theme-switch #checkbox:checked) #song-render {
     text-align: center;
 }
 
-.jump-flash::before,
-.jump-flash::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 6px;
-  background: var(--secondary-accent);
-  box-shadow: 0 0 15px var(--secondary-accent);
-  will-change: transform, opacity;
-  animation: edge-beacon 1.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+#song-render.page-flip {
+    will-change: opacity, background-color; 
+    animation: container-blink 1.1s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+@keyframes container-blink {
+    0% {
+        opacity: 0.5;
+        background-color: var(--bg-dark);
+    }
+    100% {
+        opacity: 1;
+    }
 }
 
-.jump-flash::before {
-  left: 0;
-  transform-origin: left center;
+html:has(.theme-switch #checkbox:checked) #song-render.page-flip {
+    animation: container-blink-dark 1.1s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+@keyframes container-blink-dark {
+    0% {
+        opacity: 0.75;
+        background-color: var(--bg-paper);
+    }
+    100% {
+        opacity: 1;
+    }
 }
 
-.jump-flash::after {
-  right: 0;
-  transform-origin: right center;
+.page-mode-break {
+    position: relative;
 }
+.page-mode-break::after {
+    counter-increment: singer-page-counter; 
+    content: "#" counter(singer-page-counter, decimal-leading-zero);
 
-@keyframes edge-beacon {
-  0% {
-    opacity: 1;
-    transform: scaleX(1);
-  }
-  100% {
-    opacity: 0;
-    transform: scaleX(0);
-  }
+    position: absolute;
+    bottom: -7px;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    border-bottom: 3px dashed rgba(var(--accent-rgb), 0.41);
+
+    font-size: .9em;
+    font-family: "Roboto Mono";
+    line-height: 2em;
+    color: rgba(var(--accent-rgb), 0.75);
+    white-space: nowrap;
+    pointer-events: none;
+    text-align: right;
+
+}
+html:has(.theme-switch #checkbox:checked) #song-render .page-mode-break::after{
+    border-bottom: 3px dashed rgba(var(--accent-rgb), 0.82);
 }

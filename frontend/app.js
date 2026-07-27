@@ -358,6 +358,8 @@ function buildpageModePages() {
         return [0];
     }
 
+    rowEls.forEach(el => el.classList.remove('page-mode-break'));
+
     const containerRect = scrollContainer.getBoundingClientRect();
     const scrollTopNow = scrollContainer.scrollTop;
 
@@ -374,6 +376,7 @@ function buildpageModePages() {
             pageStart = rowTops[i - 1];
             if (pageStart > pages[pages.length - 1]) {
                 pages.push(pageStart);
+                rowEls[i - 1].classList.add('page-mode-break');
             }
         }
     }
@@ -417,9 +420,12 @@ function rebuildpageModePages() {
 function performNextPage(target) {
     const container = document.getElementById('song-render');
     if (container) {
-        container.classList.remove('jump-flash');
+        container.classList.remove('page-flip');
         void container.offsetHeight; 
-        container.classList.add('jump-flash');
+        container.classList.add('page-flip');
+        setTimeout(() => {
+            container.classList.remove('page-flip');
+        }, 1100); // see .css: "animation"
     }
 
     const maxScrollTop = Math.max(0, scrollContainer.scrollHeight - scrollContainer.clientHeight);
@@ -1501,6 +1507,8 @@ if (btnpageMode) {
 
         if (isPageMode && currentRawContent) {
             activatepageModeForCurrentSong();
+        } else {
+            document.querySelectorAll('.page-mode-break').forEach(el => el.classList.remove('page-mode-break'));
         }
     });
 
