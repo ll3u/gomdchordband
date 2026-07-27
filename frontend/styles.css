@@ -63,6 +63,11 @@ body, html {
     height: 24px;
 }
 
+#btn-pagemode.active {
+    background-color: var(--accent);
+    color:var(--bg-dark);
+}
+
 .sidebar.open {
     overflow-y: auto;
 }
@@ -1350,4 +1355,38 @@ html:has(.theme-switch #checkbox:checked) #song-render {
     width: 50%;
     box-sizing: border-box;
     text-align: center;
+}
+
+.jump-flash::before,
+.jump-flash::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+  background: var(--secondary-accent);
+  box-shadow: 0 0 15px var(--secondary-accent);
+  will-change: transform, opacity;
+  animation: edge-beacon 1.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
+.jump-flash::before {
+  left: 0;
+  transform-origin: left center;
+}
+
+.jump-flash::after {
+  right: 0;
+  transform-origin: right center;
+}
+
+@keyframes edge-beacon {
+  0% {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scaleX(0);
+  }
 }

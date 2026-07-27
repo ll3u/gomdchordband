@@ -28,6 +28,16 @@ let playlistsCachedData = [];
 
 let selectedTheme = 'light';
 
+let isPageMode = false;
+const pageMode = {
+  pages: [0],
+  currentPageIndex: 0,
+  virtualScrollTop: 0,
+  expectedScrollTop: 0,
+};
+const SINGER_MODE_ROW_SELECTOR = '#song-render .row';
+
+
 // Canvas State
 const canvas = document.getElementById('annotation-canvas');
 const ctx = canvas.getContext('2d');
@@ -162,6 +172,7 @@ async function selectSong(id) {
 
     currentSongId = id;
     stopAutoscroll();
+    resetpageModeState();
 
     document.querySelectorAll('#song-list li').forEach(li => li.classList.remove('active'));
 
@@ -269,6 +280,7 @@ function renderChordSheet() {
     setTimeout(() => {
         if (typeof resizeCanvas === "function") resizeCanvas();
         if (typeof loadCanvasData === "function") loadCanvasData();
+        if (isPageMode) rebuildpageModePages();
     }, 50);
 }
 
@@ -318,13 +330,14 @@ function updateFontSize() {
     // Resize canvas to match new content height
     setTimeout(() => {
         if (typeof resizeCanvas === "function") resizeCanvas();
+        if (isPageMode) rebuildpageModePages();
     }, 50);
 }
 
-function updateProgressRing() {
+function updateProgressRing(overrideScrollTop) {
     if (!progressRing || !scrollContainer) return;
 
-    const scrollTop = scrollContainer.scrollTop;
+    const scrollTop = (typeof overrideScrollTop === 'number') ? overrideScrollTop : scrollContainer.scrollTop;
     const scrollHeight = scrollContainer.scrollHeight - scrollContainer.clientHeight;
     const progress = Math.min(scrollTop / scrollHeight, 1);
 
@@ -333,8 +346,107 @@ function updateProgressRing() {
 
     const progressRingFill = document.querySelector('.progress-ring-fill');
     if (progressRingFill) {
-    progressRingFill.style.strokeDashoffset = `${offset}px`;
+        progressRingFill.style.strokeDashoffset = `${offset}px`;
+    }
 }
+
+function buildpageModePages() {
+    const rowEls = Array.from(document.querySelectorAll(SINGER_MODE_ROW_SELECTOR));
+    const clientHeight = scrollContainer.clientHeight;
+
+    if (rowEls.length === 0 || clientHeight === 0) {
+        return [0];
+    }
+
+    const containerRect = scrollContainer.getBoundingClientRect();
+    const scrollTopNow = scrollContainer.scrollTop;
+
+    const rowTops = rowEls.map(el => {
+        const r = el.getBoundingClientRect();
+        return r.top - containerRect.top + scrollTopNow;
+    });
+
+    const pages = [0];
+    let pageStart = 0;
+
+    for (let i = 1; i < rowTops.length; i++) {
+        if (rowTops[i] - pageStart > clientHeight) {
+            pageStart = rowTops[i - 1];
+            if (pageStart > pages[pages.length - 1]) {
+                pages.push(pageStart);
+            }
+        }
+    }
+    return pages;
+}
+
+function findPageIndexForScrollTop(scrollTop) {
+    const pages = pageMode.pages;
+    let idx = 0;
+    for (let i = 0; i < pages.length; i++) {
+        if (pages[i] <= scrollTop + 1) idx = i;
+        else break;
+    }
+    return idx;
+}
+
+function resyncpageModeToCurrentScroll() {
+    const actual = scrollContainer.scrollTop;
+    pageMode.virtualScrollTop = actual;
+    pageMode.currentPageIndex = findPageIndexForScrollTop(actual);
+    pageMode.expectedScrollTop = actual;
+}
+
+function resetpageModeState() {
+    pageMode.pages = [0];
+    pageMode.currentPageIndex = 0;
+    pageMode.virtualScrollTop = 0;
+    pageMode.expectedScrollTop = 0;
+}
+
+function activatepageModeForCurrentSong() {
+    pageMode.pages = buildpageModePages();
+    resyncpageModeToCurrentScroll();
+}
+
+function rebuildpageModePages() {
+    pageMode.pages = buildpageModePages();
+    pageMode.currentPageIndex = findPageIndexForScrollTop(pageMode.virtualScrollTop);
+}
+
+function performNextPage(target) {
+    const container = document.getElementById('song-render');
+    if (container) {
+        container.classList.remove('jump-flash');
+        void container.offsetHeight; 
+        container.classList.add('jump-flash');
+    }
+
+    const maxScrollTop = Math.max(0, scrollContainer.scrollHeight - scrollContainer.clientHeight);
+    const clamped = Math.max(0, Math.min(target, maxScrollTop));
+    scrollContainer.scrollTop = clamped; // direkte Property-Zuweisung = kein CSS scroll-behavior:smooth
+    pageMode.expectedScrollTop = clamped;
+}
+
+
+function handlepageModeFrame(fractionalStep, scrollableHeight) {
+    const sm = pageMode;
+    sm.virtualScrollTop = Math.min(sm.virtualScrollTop + fractionalStep, scrollableHeight);
+
+    const isOnLastPage = sm.currentPageIndex >= sm.pages.length - 1;
+    const rawNextTarget = isOnLastPage ? scrollableHeight : sm.pages[sm.currentPageIndex + 1];
+    const nextTarget = (rawNextTarget !== undefined) ? Math.min(rawNextTarget, scrollableHeight) : undefined;
+
+    if (nextTarget !== undefined && sm.virtualScrollTop >= nextTarget - 0.5) {
+        performNextPage(nextTarget);
+        if (!isOnLastPage) sm.currentPageIndex++;
+    }
+
+    updateProgressRing(sm.virtualScrollTop);
+
+    if (isOnLastPage && sm.virtualScrollTop >= scrollableHeight - 0.5) {
+        stopAutoscroll();
+    }
 }
 
 // 3. AUTOMATISCHES ABSPIELEN & SCROLLEN (AUTOSCROLL)
@@ -365,6 +477,9 @@ function startAutoscroll() {
     }
 
     scrollAccumulator = 0;
+    if (isPageMode) {
+        resyncpageModeToCurrentScroll();
+    }
     lastScrollTime = performance.now();
     
     // ===== FIXED DELAY =====
@@ -440,12 +555,20 @@ function startAutoscroll() {
         const pxPerSec = (pctPerSec / 100) * scrollableHeight;
         const fractionalStep = (pxPerSec / 1000) * deltaTime;
 
-        scrollAccumulator += fractionalStep;
-
-        if (scrollAccumulator >= 1) {
-            const pixelsToScroll = Math.floor(scrollAccumulator);
-            scrollContainer.scrollBy(0, pixelsToScroll);
-            scrollAccumulator -= pixelsToScroll;
+        if (isPageMode) {
+            handlepageModeFrame(fractionalStep, scrollableHeight);
+            if (!isScrolling) return; // handlepageModeFrame kann bei Songende stopAutoscroll() ausgelöst haben
+        } else {
+            scrollAccumulator += fractionalStep;
+            if (scrollAccumulator >= 1) {
+                const pixelsToScroll = Math.floor(scrollAccumulator);
+                scrollContainer.scrollBy(0, pixelsToScroll);
+                scrollAccumulator -= pixelsToScroll;
+                if (Math.ceil(scrollContainer.scrollTop) >= scrollableHeight) {
+                    stopAutoscroll();
+                    return;
+                }
+            }
         }
 
         autoscrollFrameId = requestAnimationFrame(scrollFrame);
@@ -486,6 +609,9 @@ let touchTimeout = null;
 
 
 window.addEventListener('resize', resizeCanvas);
+window.addEventListener('resize', () => {
+    if (isPageMode) rebuildpageModePages();
+});
 
 function startDrawing(e) {
     if (touchTimeout) clearTimeout(touchTimeout);
@@ -1365,3 +1491,34 @@ const btnMidiSettings = document.getElementById('btn-midicontrol');
 btnMidiSettings.addEventListener('click', () => {
     midi.openDialog();
 });
+
+const btnpageMode = document.getElementById('btn-pagemode');
+if (btnpageMode) {
+    btnpageMode.addEventListener('click', () => {
+        isPageMode = !isPageMode;
+        btnpageMode.classList.toggle('active', isPageMode);
+        localStorage.setItem('settings.pageMode', isPageMode);
+
+        if (isPageMode && currentRawContent) {
+            activatepageModeForCurrentSong();
+        }
+    });
+
+    const savedMode = localStorage.getItem('settings.pageMode');
+    if (savedMode === 'true') {
+        isPageMode = true;
+        btnpageMode.classList.add('active');
+        if (currentRawContent) {
+            activatepageModeForCurrentSong();
+        }
+    }
+}
+
+scrollContainer.addEventListener('scroll', () => {
+    if (!isPageMode || !isScrolling) return;
+    const actual = scrollContainer.scrollTop;
+    if (Math.abs(actual - pageMode.expectedScrollTop) < 2) return; // Echo unseres eigenen Sprungs
+    pageMode.virtualScrollTop = actual;
+    pageMode.currentPageIndex = findPageIndexForScrollTop(actual);
+    pageMode.expectedScrollTop = actual;
+}, { passive: true });
